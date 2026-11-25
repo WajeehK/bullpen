@@ -1,32 +1,32 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b3';
+const BUILD = 'b4';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------------------------------------------------------------- roster
-const SEAT = (f, cx) => ({ f, gx: cx, gy: 1.35, pose: 'type', via: [[cx + 1.3, 1.35]] });
+const SEAT = (f, cx) => ({ f, gx: cx, gy: 1.55, pose: 'type' });
 const ANALYSTS = {
-  chartist: { name: 'Chartist', title: 'Trend, momentum & levels', color: '#38bdf8', eye: '#e0f2fe', lvl: 1, home: SEAT(1, 2.5) },
-  quant: { name: 'Quant', title: 'Volatility, drawdown & beta', color: '#c084fc', eye: '#fae8ff', lvl: 2, home: SEAT(1, 7.5) },
-  accountant: { name: 'Accountant', title: 'Revenue, margins & valuation', color: '#22c55e', eye: '#dcfce7', lvl: 1, home: SEAT(2, 2.5) },
-  crypto: { name: 'Crypto Desk', title: 'Market cap, supply & funding', color: '#f97316', eye: '#ffedd5', lvl: 1, home: SEAT(2, 7.5) },
-  reporter: { name: 'Reporter', title: 'Headlines & catalysts', color: '#f472b6', eye: '#fce7f3', lvl: 1, home: SEAT(3, 2.5) },
-  macro: { name: 'Macro', title: 'Market backdrop & FX', color: '#60a5fa', eye: '#dbeafe', lvl: 3, home: SEAT(3, 7.5) },
-  insider: { name: 'Insider', title: 'Congress, CEO & fund trades', color: '#94a3b8', eye: '#f1f5f9', lvl: 1, home: SEAT(4, 2.7) },
-  bear: { name: 'Bear', title: 'The risk case', color: '#f43f5e', eye: '#ffe4e6', lvl: 1, home: SEAT(4, 7.5) },
-  earnings: { name: 'Earnings', title: 'Report dates & beat history', color: '#a78bfa', eye: '#ede9fe', lvl: 6, home: SEAT(5, 2.5) },
-  boss: { name: 'Boss', title: 'Verdict', color: '#fbbf24', eye: '#fffbeb', lvl: 1, home: { f: 6, gx: 1.65, gy: 1.3, pose: 'type', via: [[2.95, 1.3]] } },
-  you: { name: 'You', title: 'Your desk', color: '#34d399', eye: '#ecfdf5', lvl: 1, home: SEAT(0, 7.5) }
+  chartist:   { name: 'Chartist',    title: 'Trend, momentum & levels',     color: '#1d9bf0', shape: 'circle',   lvl: 1, home: SEAT(1, 2.55) },
+  quant:      { name: 'Quant',       title: 'Volatility, drawdown & beta',  color: '#8b5cf6', shape: 'hex',      lvl: 2, home: SEAT(1, 7.65) },
+  accountant: { name: 'Accountant',  title: 'Revenue, margins & valuation', color: '#10b981', shape: 'squircle', lvl: 1, home: SEAT(2, 2.55) },
+  crypto:     { name: 'Crypto Desk', title: 'Market cap, supply & funding', color: '#f97316', shape: 'pebble',   lvl: 1, home: SEAT(2, 7.65) },
+  reporter:   { name: 'Reporter',    title: 'Headlines & catalysts',        color: '#ec4899', shape: 'triangle', lvl: 1, home: SEAT(3, 2.55) },
+  macro:      { name: 'Macro',       title: 'Market backdrop & FX',         color: '#3b82f6', shape: 'cloud',    lvl: 3, home: SEAT(3, 7.65) },
+  insider:    { name: 'Insider',     title: 'Congress, CEO & fund trades',  color: '#64748b', shape: 'droplet',  lvl: 1, home: SEAT(4, 2.85) },
+  bear:       { name: 'Bear',        title: 'The risk case',                color: '#f43f5e', shape: 'pill',     lvl: 1, home: SEAT(4, 7.65) },
+  earnings:   { name: 'Earnings',    title: 'Report dates & beat history',  color: '#a855f7', shape: 'droplet',  lvl: 6, home: SEAT(5, 2.55) },
+  boss:       { name: 'Boss',        title: 'Verdict',                      color: '#f59e0b', shape: 'cloud',    lvl: 1, home: { f: 6, gx: 1.65, gy: 1.45, pose: 'type' } },
+  you:        { name: 'You',         title: 'Your desk',                    color: '#14b8a6', shape: 'squircle', lvl: 1, home: SEAT(0, 7.65) }
 };
 const ORDER_STOCK = ['chartist', 'accountant', 'earnings', 'reporter', 'insider', 'quant', 'macro', 'bear'];
 const ORDER_COIN = ['chartist', 'crypto', 'reporter', 'insider', 'quant', 'macro', 'bear'];
-const BOSS_HEAD = { f: 6, gx: 4.92, gy: 1.4, pose: 'stand', via: [[4.2, 1.4]] };
+const BOSS_HEAD = { f: 6, gx: 4.0, gy: 2.15, pose: 'stand' };
 const SEAT_ANG = [-38, 38, -76, 76, -114, 114, -150, 150, 0];
-function tableSeat(i) { const a = (225 + SEAT_ANG[i % SEAT_ANG.length]) * Math.PI / 180; const gx = 6.3 + Math.cos(a) * 1.95, gy = 2.25 + Math.sin(a) * 1.2; const side = gx < 6.3 ? 4.15 : 8.5; return { f: 6, gx, gy, pose: 'chair', via: [[side, gy]] }; }
-function presentSpot(id) { const h = ANALYSTS[id].home; return { f: h.f, gx: h.gx + 0.55, gy: 3.6, pose: 'stand' }; }
+function tableSeat(i) { const a = (210 + SEAT_ANG[i % SEAT_ANG.length]) * Math.PI / 180; const gx = 6.0 + Math.cos(a) * 1.85, gy = 2.45 + Math.sin(a) * 1.05; return { f: 6, gx, gy, pose: 'stand' }; }
+function presentSpot(id) { const h = ANALYSTS[id].home; return { f: h.f, gx: h.gx + 0.45, gy: 2.75, pose: 'stand' }; }
 const UNLOCKS = [
   { lvl: 2, id: 'quant', kind: 'analyst', label: 'Quant joins the Research floor', sub: 'Volatility, drawdown and beta vs the market' },
   { lvl: 3, id: 'macro', kind: 'analyst', label: 'Macro desk opens in the Newsroom', sub: 'Market backdrop, Fear & Greed and FX' },
@@ -65,13 +65,13 @@ const SFX = { ctx: null, play(kind) { if (!ST.sound) return; try { this.ctx = th
 // ---------------------------------------------------------------- scene
 let scene;
 function roster() {
-  const list = Object.entries(ANALYSTS).map(([id, a]) => ({ id, name: a.name, color: a.color, eye: a.eye, home: a.home, hidden: !unlocked(id) }));
+  const list = Object.entries(ANALYSTS).map(([id, a]) => ({ id, name: a.name, color: a.color, shape: a.shape, home: a.home, hidden: !unlocked(id) }));
   scene.setBots(list);
   const set = UNLOCKS.filter(u => u.lvl <= level() && !(u.kind === 'room' && ST.decorOff[u.id])).map(u => u.id);
   const locks = {}; for (const k of Object.keys(LOCK_LABEL)) if (!unlocked(k)) locks[k] = LOCK_LABEL[k];
   scene.setUnlocks(set, locks);
 }
-function avatar(id, size = 40) { const a = ANALYSTS[id]; return BOT.avatar({ color: a.color, eye: a.eye }, size); }
+function avatar(id, size = 40) { const a = ANALYSTS[id]; return BOT.avatar({ color: a.color, shape: a.shape, role: id }, size); }
 // ---------------------------------------------------------------- search & autocomplete
 const askIn = () => $('#q');
 function renderAC(items) {
@@ -236,7 +236,7 @@ async function startAnalysis(item) {
   const crypto = item.kind === 'crypto', sym = item.id;
   const order = (crypto ? ORDER_COIN : ORDER_STOCK).filter(id => unlocked(id) && (id !== 'earnings' || !crypto));
   $('#report').innerHTML = '<button class="rep-x" id="repClose" type="button">Close</button>'; $('#repClose').onclick = () => document.body.classList.remove('rep-open');
-  if (!isLand()) $('#stage').scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' });
+  if (!isLand()) scene.focusFloor(6);
   stopIdle();
   for (const id of Object.keys(ANALYSTS)) if (id !== 'you' && !order.includes(id) && id !== 'boss' && !scene.isHome(id)) scene.goHome(id, 1.4);
   setActivity(`${sym} · loading real data`, true);
@@ -244,10 +244,10 @@ async function startAnalysis(item) {
   const intro = dialog('boss', `Team, let's look at ${item.name} (${sym}). Each of you report from your floor, then meet me upstairs.`, { auto: 1800 });
   let ctx;
   try { [ctx] = await Promise.all([buildContext(item), intro]); }
-  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); setBusy(false); setActivity('Drag to explore · tap a bot'); RUN = null; return; }
+  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); setBusy(false); setActivity('Tap a bot'); RUN = null; return; }
   scene.quiet('boss');
   const closes = ctx.bars.map(b => b[4]).slice(-120);
-  scene.holo = { series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) };
+  scene.setHolo({ series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) });
   renderHeader(ctx);
   const done = [];
   for (const id of order) {
@@ -278,7 +278,7 @@ async function startAnalysis(item) {
   scene.follow('boss');
   if (RUN.skip) { done.forEach((s, i) => scene.place(s.by, tableSeat(i))); scene.place('boss', BOSS_HEAD); }
   else { walks.push(scene.walk('boss', BOSS_HEAD, 1.4)); await Promise.race([Promise.all(walks), sleep(7000)]); done.forEach((s, i) => { const b = scene.bots.get(s.by); if (b && (b.path.length || b.f !== 6)) scene.place(s.by, tableSeat(i)); }); if (!scene.isAt('boss', BOSS_HEAD)) scene.place('boss', BOSS_HEAD); }
-  scene.holo.score = v.score;
+  scene.setHolo(Object.assign({}, scene.holo, { score: v.score }));
   scene.say('boss', `${v.score}/100 · ${v.stance}`);
   await dialog('boss', v.lines[0], { auto: RUN.skip ? 900 : 2600, step: 'Verdict' });
   scene.quiet('boss'); SFX.play('win');
@@ -291,8 +291,8 @@ async function startAnalysis(item) {
   openVerdict(ctx, v, pts);
   hideDialog();
   const ids = [...done.map(s => s.by), 'boss'];
-  setBusy(false); RUN = null; renderChips(); setActivity('Drag to explore · tap a bot');
-  setTimeout(async () => { if (RUN) return; scene.follow(null); ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.holo = null; }, 12000); startIdle(); }, 4000);
+  setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot');
+  setTimeout(async () => { if (RUN) return; scene.follow(null); ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
 }
 const nice = s => { s = String(s); return /[a-z]/.test(s) ? s : s.charAt(0) + s.slice(1).toLowerCase(); };
 
@@ -483,7 +483,7 @@ const TABS = ['floor', 'calls', 'watch', 'profile'];
 function showTab(t) {
   TABS.forEach(x => { $('#tab-' + x).classList.toggle('on', x === t); });
   TabBar.set(TABS.indexOf(t));
-  if (t === 'floor') { scene.start(); requestAnimationFrame(() => scene.resize()); } else scene.stop();
+  if (t === 'floor') { scene.start(); requestAnimationFrame(() => scene.resize()); } else { scene.stop(); $('#floorRail').classList.add('hide'); }
   if (t === 'calls') { renderCalls(); scoreCalls(); }
   if (t === 'watch') { renderWatch(); pollWatch(); }
   if (t === 'profile') renderProfile();
@@ -504,8 +504,7 @@ function renderFloorRail() {
 }
 function applyLayout() {
   const land = isLand(); document.body.classList.toggle('land', land);
-  if (land) scene.setLayout({ land: true, pad: { l: 84, r: 336, t: 64, b: 20 }, fy: 0.5 });
-  else scene.setLayout({ land: false, pad: { l: 0, r: 44, t: 70, b: 150 }, fy: 0.45 });
+  scene.resize();
   renderInbox();
 }
 
@@ -513,7 +512,7 @@ function applyLayout() {
 let idleOn = true, tripN = 0; const trips = new Map();
 function stopIdle() { idleOn = false; trips.clear(); }
 function startIdle() { idleOn = true; }
-const SOFA = [[2.95, 1.1], [3.55, 1.1], [4.15, 1.1]];
+const SOFA = [[3.1, 1.45], [3.6, 1.45], [4.1, 1.45]];
 async function idleTick() {
   if (!idleOn || RUN || document.hidden || !$('#tab-floor').classList.contains('on') || trips.size >= 2) return;
   const ids = Object.keys(ANALYSTS).filter(id => id !== 'you' && unlocked(id) && scene.isHome(id) && !trips.has(id)); if (!ids.length) return;
@@ -522,7 +521,7 @@ async function idleTick() {
   const r = Math.random(); let dest, wait = 5000, line = null;
   const used = new Set([...scene.bots.values()].filter(b => b.f === 0 && b.state === 'sofa').map(b => b.gx.toFixed(2)));
   const free = SOFA.filter(s => !used.has(s[0].toFixed(2)));
-  if (r < 0.4 && free.length) { const s = free[Math.floor(Math.random() * free.length)]; dest = { f: 0, gx: s[0], gy: s[1], pose: 'sofa', via: [[s[0], 2.2]] }; wait = 8000 + Math.random() * 6000; }
+  if (r < 0.4 && free.length) { const s = free[Math.floor(Math.random() * free.length)]; dest = { f: 0, gx: s[0], gy: s[1], pose: 'sofa' }; wait = 8000 + Math.random() * 6000; }
   else if (r < 0.65) { const x0 = h.gx < 5 ? 0.9 : 5.9; dest = { f: h.f, gx: x0 + Math.random() * 3.2, gy: 0.75, pose: 'stand', back: true }; wait = 4500; }
   else if (r < 0.85) { const other = Object.keys(ANALYSTS).filter(o => o !== id && o !== 'you' && unlocked(o) && ANALYSTS[o].home.f !== 0); const o = other[Math.floor(Math.random() * other.length)]; const oh = ANALYSTS[o].home; dest = { f: oh.f, gx: oh.gx - 0.7, gy: 3.0, pose: 'talk' }; wait = 4000; }
   else if (unlocked('lounge')) { dest = { f: 0, gx: 1.05, gy: 1.1, pose: 'stand', look: -1 }; wait = 4000; }
@@ -539,7 +538,7 @@ async function idleTick() {
 // ---------------------------------------------------------------- boot
 async function boot() {
   scene = new Tower($('#tower'));
-  roster(); renderFloorRail(); scene.focusFloor(0, true);
+  roster(); renderFloorRail(); new IntersectionObserver(es => { const on = es[0].isIntersecting && $('#tab-floor').classList.contains('on'); $('#floorRail').classList.toggle('hide', !on); }, { threshold: 0.05 }).observe($('#towerWrap'));
   TabBar.init($('.tabbar'), i => showTab(TABS[i]));
   applyLayout(); matchMedia('(orientation: landscape) and (max-height: 560px)').addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
   scene.start();

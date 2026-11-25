@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0c0d12">
 <title>Blackrock · Analyst Tower</title>
-<meta name="description" content="Blackrock: ask a tower of analyst bots about any stock or coin. Real public data, rule-based write-ups. Not financial advice.">
+<meta name="description" content="Blackrock: ask a tower of Grok Bot analysts about any stock or coin. Real public data, rule-based write-ups. Not financial advice.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/br-icon-192.png">
 <link rel="apple-touch-icon" href="icons/br-icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=b3">
+<link rel="stylesheet" href="css/style.css?v=b4">
 </head>
 <body>
 <header class="top">
@@ -20,21 +20,24 @@
 </header>
 <main>
   <section id="tab-floor" class="tab on">
-    <form id="ask" autocomplete="off">
-      <div class="askw"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
-      <input id="q" type="search" enterkeyhint="go" placeholder="Ask about a stock or coin · PLTR, BTC" aria-label="Ask about a stock or coin">
-      <button id="askBtn" class="btn primary">Ask</button></div>
-      <div id="ac" class="ac" hidden></div>
-    </form>
-    <div id="chips" class="chips"></div>
-    <div id="stage" class="stage">
-      <canvas id="tower" aria-label="Blackrock Tower, a cutaway building with analyst bots"></canvas>
+    <div class="tbar">
       <div class="status glass" id="status">
-        <div class="st-row"><img src="icons/br-icon-192.png" alt=""><div><div class="st-t">Blackrock Tower <span class="live"><i></i>Live</span></div><div class="st-sub" id="stSub">Loading…</div></div></div>
+        <div class="st-row"><img src="icons/br-icon-192.png" alt=""><div><div class="st-t">Blackrock Tower <span class="live"><i></i>Live</span></div><div class="st-sub" id="stSub">Loading…</div></div><div class="activity" id="activity"><i></i><span>Tap a bot</span></div></div>
         <div class="st-counts"><span><i class="d mv"></i><b id="cMove">0</b> moving</span><span><i class="d wk"></i><b id="cWork">0</b> working</span><span><i class="d wt"></i><b id="cWait">0</b> waiting</span></div>
       </div>
-      <div class="activity glass" id="activity"><i></i><span>Drag to explore · tap a bot</span></div>
-      <div class="floors glass" id="floorRail" aria-label="Floors"></div>
+      <form id="ask" autocomplete="off">
+        <div class="askw"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+        <input id="q" type="search" enterkeyhint="go" placeholder="Ask about a stock or coin · PLTR, BTC" aria-label="Ask about a stock or coin">
+        <button id="askBtn" class="btn primary">Ask</button></div>
+        <div id="ac" class="ac" hidden></div>
+      </form>
+    </div>
+    <div id="chips" class="chips"></div>
+    <div id="stage" class="stage">
+      <div id="towerWrap" class="tower-wrap">
+        <div id="tower" class="tower" aria-label="Blackrock Tower, a cutaway building with Grok Bot analysts"></div>
+      </div>
+      <div class="floors glass" id="floorRail" aria-label="Jump to floor"></div>
       <div id="dialog" class="msg glass" hidden>
         <div class="msg-av"></div>
         <div class="msg-main">
@@ -49,7 +52,7 @@
       <section class="panel glass" id="waiting"><div class="panel-h"><b>Waiting on me</b><span class="badge" id="wcount">0</span></div><div id="wlist"></div></section>
       <section class="panel glass" id="progress"></section>
     </aside>
-    <div id="report" class="report"><button class="rep-x" id="repClose" type="button" aria-label="Close report">Close</button><div class="intro card"><h2>Your analyst tower</h2><p>Ask about a ticker, a coin or a question. Each analyst bot reports from its own floor using real market data: charts, accounts, news, Congress and insider trades, and the risks. Then the bots meet in the penthouse, where the Boss gives a scored verdict.</p><p class="nfa">Not financial advice</p></div></div>
+    <div id="report" class="report"><button class="rep-x" id="repClose" type="button" aria-label="Close report">Close</button><div class="intro card"><h2>Your analyst tower</h2><p>Ask about a ticker, a coin or a question. Each analyst bot reports from its own floor using real market data: charts, accounts, news, Congress and insider trades, and the risks. Then the bots ride the lift to the penthouse, where the Boss gives a scored verdict.</p><p class="nfa">Not financial advice</p></div></div>
   </section>
   <section id="tab-calls" class="tab"><h2 class="ph">Your calls</h2><div id="calls"></div></section>
   <section id="tab-watch" class="tab"><h2 class="ph">Watchlist</h2><div id="watch"></div></section>
@@ -65,12 +68,12 @@
 </nav>
 <div id="verdict" class="vmodal" hidden><div class="vm"><button class="vm-x" aria-label="Close">✕</button><div class="vm-body"></div></div></div>
 <div id="toast" class="toast" role="status"></div>
-<script src="js/bots.js?v=b3"></script>
-<script src="js/tower.js?v=b3"></script>
-<script src="js/analysis.js?v=b3"></script>
-<script src="js/data.js?v=b3"></script>
-<script src="js/chart.js?v=b3"></script>
-<script src="js/tabbar.js?v=b3"></script>
-<script src="js/app.js?v=b3"></script>
+<script src="js/bots.js?v=b4"></script>
+<script src="js/tower.js?v=b4"></script>
+<script src="js/analysis.js?v=b4"></script>
+<script src="js/data.js?v=b4"></script>
+<script src="js/chart.js?v=b4"></script>
+<script src="js/tabbar.js?v=b4"></script>
+<script src="js/app.js?v=b4"></script>
 </body>
 </html>
