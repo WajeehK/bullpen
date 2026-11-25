@@ -477,15 +477,21 @@ class Tower {
     c.updateProjectionMatrix(); c.updateMatrixWorld();
   }
   lockCam() {
-    const fr = this.free(), land = this.w > this.h * 1.3, t = this.bTop;
+    const fr = this.free(), land = this.w > this.h * 1.3;
+    const ext = pts => { const a = { u0: 1e9, u1: -1e9, v0: 1e9, v1: -1e9 }; for (const p of pts) { const q = this.uvOf(...p); a.u0 = Math.min(a.u0, q.u); a.u1 = Math.max(a.u1, q.u); a.v0 = Math.min(a.v0, q.v); a.v1 = Math.max(a.v1, q.v); } return a; };
     if (!land) {
-      const k = this.basePPU;
+      const t = this.bTop, k = this.basePPU;
       this.u = (t.u0 + t.u1) / 2; this.v = t.v1 - (fr.cy - fr.y - 4) / k; this.zoom = 1;
     } else {
-      // one framed view: meeting table sits in the band above a reserved caption strip
-      const z = 1.18, k = this.basePPU * z, capTop = fr.y + fr.h - 124, ay = (fr.y + capTop) / 2;
-      const p = this.uvOf(TW.TX + 0.55, 6 * TW.FH + 0.35, TW.TZ + 0.15);
-      this.u = p.u; this.v = p.v + (ay - fr.cy) / k; this.zoom = z;
+      // whole top floor + 2-3 floors below + lift, with a little margin; table stays above the caption band
+      const yT = 6 * TW.FH, pts = [];
+      for (const x of [-TW.HW - 0.1, TW.LIFT_X + 0.75]) for (const z of [-TW.HD, TW.HD]) for (const y of [yT - 2.15 * TW.FH, yT + TW.TOPW + 0.35]) pts.push([x, y, z]);
+      const b = ext(pts), capH = 100, m = 8;
+      const k = Math.min((fr.w - 8) / (b.u1 - b.u0), (fr.h - capH - m) / (b.v1 - b.v0)) * 1.08;
+      this.zoom = k / this.basePPU; this.u = (b.u0 + b.u1) / 2; this.v = b.v1 - (fr.cy - (fr.y + m)) / k;
+      const tbl = this.uvOf(TW.TX, yT + 0.55, TW.TZ), capTop = fr.y + fr.h - capH;
+      const tblY = fr.cy - (tbl.v - this.v) * k;
+      if (tblY > capTop - 10) this.v += (tblY - (capTop - 10)) / k;
     }
     this.anim = null; this.vel.u = this.vel.v = 0; this.followId = null; this.dirty = true;
   }
