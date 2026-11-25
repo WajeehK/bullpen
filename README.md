@@ -1,6 +1,6 @@
 # Blackrock · Analyst Tower
 
-An analyst-tower PWA (repo name `bullpen` kept for the URL). Ask about any stock, ETF or coin ("should I look at Palantir?", `PLTR`, `BTC`) and a team of small analyst bots reports from real data, each from its own floor of an isometric cutaway tower, then they ride the lift to the penthouse where the Boss gives a scored verdict. Live at **https://wajeehk.github.io/bullpen/**.
+An analyst-tower PWA (repo name `bullpen` kept for the URL). Ask about any stock, ETF or coin ("should I look at Palantir?", `PLTR`, `BTC`) and a team of small analyst bots takes the lift up to the meeting table on the top floor of a 3D isometric cutaway tower (three.js, vendored in `js/vendor`). There, each bot reports its finding from real data in a speech-bubble round, and the Boss gives a scored verdict. Live at **https://wajeehk.github.io/bullpen/**.
 
 Unrelated to BlackRock, Inc.; the name and the obsidian-monolith icon are this app's own.
 
@@ -23,7 +23,7 @@ Unrelated to BlackRock, Inc.; the name and the obsidian-monolith icon are this a
 Estimated dates (earnings from the usual quarterly cadence, dividends from past ex-dates) are labelled "estimated". Token unlock schedules have no free feed, so they are marked unavailable and issued-vs-max supply is used as the proxy.
 
 ## The tower
-Floors: Lobby (your desk, sofa), Research (Chartist, Quant), Fundamentals (Accountant, Crypto Desk), Newsroom (Reporter, Macro), Vault & Risk (Insider, Bear), Trading floor (Earnings bot, trading desk) and the Penthouse with the verdict table. Drag or pinch to pan and zoom, tap the floor rail to jump; the camera follows whoever is presenting. Bots type at their desks, wander to windows, chat, and sit on the lobby sofa between analyses. Landscape shows the wide view with the Waiting on me panel docked right.
+Floors: Lobby (your desk, sofa), Research (Chartist, Quant), Fundamentals (Accountant, Crypto Desk), Newsroom (Reporter, Macro), Vault & Risk (Insider, Bear), Trading floor (Earnings bot, trading desk) and the open-plan top floor with the meeting table, the Boss's desk, a teal sofa and the market wall screen. Drag to pan (with inertia), pinch or scroll to zoom, tap a bot to focus on it, and double-tap empty space to reset the view. Between analyses, bots type at their desks, ride the glass lift, visit each other to chat about the day's real ticker moves, and take breaks on the sofas. Landscape is the main layout, with a full-bleed tower behind a glass HUD. In portrait the tower is a fixed-height view and the rest of the page scrolls.
 
 **Tower level**: points for each analysis (+40, +20 new ticker, +30 first today), each call (+15) and each scored call (+60 right at 7 days, +120 right at 30 days, +10 otherwise). Levels open the Quant, Macro desk, better screens, the Trading floor, the Earnings bot, the lobby lounge, a penthouse upgrade, the rooftop garden and an art wall.
 

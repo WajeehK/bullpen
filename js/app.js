@@ -1,13 +1,13 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b4';
+const BUILD = 'b5';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------------------------------------------------------------- roster
-const SEAT = (f, cx) => ({ f, gx: cx, gy: 1.55, pose: 'type' });
+const SEAT = (f, cx) => ({ f, gx: cx, gy: 3.15, pose: 'type' });
 const ANALYSTS = {
   chartist:   { name: 'Chartist',    title: 'Trend, momentum & levels',     color: '#1d9bf0', shape: 'circle',   lvl: 1, home: SEAT(1, 2.55) },
   quant:      { name: 'Quant',       title: 'Volatility, drawdown & beta',  color: '#8b5cf6', shape: 'hex',      lvl: 2, home: SEAT(1, 7.65) },
@@ -18,15 +18,16 @@ const ANALYSTS = {
   insider:    { name: 'Insider',     title: 'Congress, CEO & fund trades',  color: '#64748b', shape: 'droplet',  lvl: 1, home: SEAT(4, 2.85) },
   bear:       { name: 'Bear',        title: 'The risk case',                color: '#f43f5e', shape: 'pill',     lvl: 1, home: SEAT(4, 7.65) },
   earnings:   { name: 'Earnings',    title: 'Report dates & beat history',  color: '#a855f7', shape: 'droplet',  lvl: 6, home: SEAT(5, 2.55) },
-  boss:       { name: 'Boss',        title: 'Verdict',                      color: '#f59e0b', shape: 'cloud',    lvl: 1, home: { f: 6, gx: 1.65, gy: 1.45, pose: 'type' } },
+  boss:       { name: 'Boss',        title: 'Verdict',                      color: '#f59e0b', shape: 'cloud',    lvl: 1, home: { f: 6, gx: 8.0, gy: 2.0, pose: 'type' } },
   you:        { name: 'You',         title: 'Your desk',                    color: '#14b8a6', shape: 'squircle', lvl: 1, home: SEAT(0, 7.65) }
 };
 const ORDER_STOCK = ['chartist', 'accountant', 'earnings', 'reporter', 'insider', 'quant', 'macro', 'bear'];
 const ORDER_COIN = ['chartist', 'crypto', 'reporter', 'insider', 'quant', 'macro', 'bear'];
-const BOSS_HEAD = { f: 6, gx: 4.0, gy: 2.15, pose: 'stand' };
-const SEAT_ANG = [-38, 38, -76, 76, -114, 114, -150, 150, 0];
-function tableSeat(i) { const a = (210 + SEAT_ANG[i % SEAT_ANG.length]) * Math.PI / 180; const gx = 6.0 + Math.cos(a) * 1.85, gy = 2.45 + Math.sin(a) * 1.05; return { f: 6, gx, gy, pose: 'stand' }; }
-function presentSpot(id) { const h = ANALYSTS[id].home; return { f: h.f, gx: h.gx + 0.45, gy: 2.75, pose: 'stand' }; }
+// top-floor meeting table (world: centre x -1.0, z 0.4) expressed in tower grid units
+const TABLE = { gx: 25 / 6, gy: 2.2 };
+const BOSS_HEAD = { f: 6, gx: 2.5, gy: 2.2, pose: 'stand', face: TABLE };
+const SEAT_ANG = [115, 65, 150, 30, 0, -30, -65, -115, -150];
+function tableSeat(i) { const a = SEAT_ANG[i % SEAT_ANG.length] * Math.PI / 180; const x = -1.0 + Math.cos(a) * 2.0, z = 0.4 - Math.sin(a) * 1.22; return { f: 6, gx: (x + 6) / 1.2, gy: (z + 4) / 2, pose: 'stand', face: TABLE }; }
 const UNLOCKS = [
   { lvl: 2, id: 'quant', kind: 'analyst', label: 'Quant joins the Research floor', sub: 'Volatility, drawdown and beta vs the market' },
   { lvl: 3, id: 'macro', kind: 'analyst', label: 'Macro desk opens in the Newsroom', sub: 'Market backdrop, Fear & Greed and FX' },
@@ -227,6 +228,7 @@ function earningsSection(ctx) {
   return out;
 }
 
+const pick = a => a[Math.floor(Math.random() * a.length)];
 async function startAnalysis(item) {
   if (RUN) return;
   if (typeof item === 'string') { setBusy(true); const r = await resolve(item); setBusy(false); if (!r) { toast('I couldn\'t find that ticker or coin. Try the symbol, like PLTR or BTC.'); return; } item = r; }
@@ -236,15 +238,17 @@ async function startAnalysis(item) {
   const crypto = item.kind === 'crypto', sym = item.id;
   const order = (crypto ? ORDER_COIN : ORDER_STOCK).filter(id => unlocked(id) && (id !== 'earnings' || !crypto));
   $('#report').innerHTML = '<button class="rep-x" id="repClose" type="button">Close</button>'; $('#repClose').onclick = () => document.body.classList.remove('rep-open');
-  if (!isLand()) scene.focusFloor(6);
-  stopIdle();
-  for (const id of Object.keys(ANALYSTS)) if (id !== 'you' && !order.includes(id) && id !== 'boss' && !scene.isHome(id)) scene.goHome(id, 1.4);
-  setActivity(`${sym} · loading real data`, true);
-  scene.follow('boss'); scene.say('boss', `Team: ${sym}`);
-  const intro = dialog('boss', `Team, let's look at ${item.name} (${sym}). Each of you report from your floor, then meet me upstairs.`, { auto: 1800 });
+  stopIdle(); syncNeeds(); scene.follow(null); scene.capTop = innerHeight - 160; scene.frameTable();
+  for (const id of Object.keys(ANALYSTS)) { scene.quiet(id); if (id !== 'you' && !order.includes(id) && id !== 'boss' && !scene.isHome(id)) scene.goHome(id, 1.4); }
+  setActivity(`${sym} · team to the table`, true);
+  // v1 flow: the Boss calls everyone to the top-floor table while the real data loads
+  scene.hop('boss'); scene.say('boss', `Table! ${sym.replace('.L', '')}`); SFX.play('blip');
+  const intro = dialog('boss', `Team, to the table. We're looking at ${item.name} (${sym}).`, { auto: 1800 });
+  const seats = new Map(order.map((id, i) => [id, tableSeat(i)]));
+  const gather = Promise.all([scene.walk('boss', BOSS_HEAD, 1.2), ...order.map((id, i) => sleep(i * 240).then(() => scene.walk(id, seats.get(id), 1.45)))]);
   let ctx;
   try { [ctx] = await Promise.all([buildContext(item), intro]); }
-  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); setBusy(false); setActivity('Tap a bot'); RUN = null; return; }
+  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); hideDialog(); setBusy(false); setActivity('Tap a bot'); RUN = null; syncNeeds(); scene.home(); order.forEach((id, i) => setTimeout(() => scene.goHome(id, 1.2), i * 300)); scene.goHome('boss'); startIdle(); return; }
   scene.quiet('boss');
   const closes = ctx.bars.map(b => b[4]).slice(-120);
   scene.setHolo({ series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) });
@@ -256,32 +260,34 @@ async function startAnalysis(item) {
     sec.by = id; done.push(sec);
   }
   const bearSec = order.includes('bear') ? AN.bear(ctx, done) : null; if (bearSec) { bearSec.by = 'bear'; done.push(bearSec); }
-  // present, floor by floor
-  const walks = []; let seatI = 0;
+  setActivity(`${sym} · gathering upstairs`, true);
+  if (!RUN.skip) await Promise.race([gather, sleep(15000)]);
+  for (const id of order) if (!scene.isAt(id, seats.get(id))) scene.place(id, seats.get(id));
+  if (!scene.isAt('boss', BOSS_HEAD)) scene.place('boss', BOSS_HEAD);
+  // round the table: each analyst reports its finding, others react
   for (let i = 0; i < done.length; i++) {
     const sec = done[i], id = sec.by;
     if (RUN.skip) { renderCard(sec, ctx); continue; }
-    setActivity(`${sym} · ${ANALYSTS[id].name} presenting`, true);
-    scene.follow(id);
-    await Promise.race([scene.walk(id, presentSpot(id), 1.5), sleep(4500)]);
-    if (RUN.skip) { renderCard(sec, ctx); continue; }
-    scene.say(id, nice(sec.headline || '…')); SFX.play('blip');
+    setActivity(`${sym} · ${ANALYSTS[id].name} reporting`, true);
+    scene.hop(id); scene.say(id, nice(sec.headline || '…')); SFX.play('blip');
     renderCard(sec, ctx, true);
     const pages = sec.lines.filter(x => !x.startsWith('•')).slice(0, 2);
-    for (const p of pages) { if (RUN.skip) break; await dialog(id, p, { auto: Math.min(6500, 1400 + p.length * 32), step: `${i + 1} of ${done.length}` }); }
+    for (const p of pages) { if (RUN.skip) break; await dialog(id, p, { auto: Math.min(6500, 1500 + p.length * 34), step: `${i + 1} of ${done.length}` }); }
     scene.quiet(id);
-    walks.push(scene.walk(id, tableSeat(seatI++), 1.6));
+    if (!RUN.skip) {
+      const tone = (sec.signals || []).reduce((a, g) => a + (g.s || 0) * (g.w || 1), 0);
+      const others = [...order.filter(o => o !== id), 'boss']; const o = Math.random() < 0.35 ? 'boss' : pick(others);
+      const line = tone > 0.6 ? pick(['Agreed.', 'Good read.', 'Nice, noted.', 'That helps the bull case.']) : tone < -0.6 ? pick(['Hmm, that\'s a worry.', 'Noted. Risky.', 'Not great.', 'That hurts the bull case.']) : pick(['Fair.', 'Mixed, then.', 'OK, next.', 'Noted.']);
+      scene.say(o, line); setTimeout(() => scene.quiet(o), 1700); await sleep(500);
+    }
   }
-  // penthouse verdict
+  // Boss verdict at the head of the table
   const v = AN.verdict(ctx, done);
-  setActivity(`${sym} · verdict upstairs`, true);
-  scene.follow('boss');
-  if (RUN.skip) { done.forEach((s, i) => scene.place(s.by, tableSeat(i))); scene.place('boss', BOSS_HEAD); }
-  else { walks.push(scene.walk('boss', BOSS_HEAD, 1.4)); await Promise.race([Promise.all(walks), sleep(7000)]); done.forEach((s, i) => { const b = scene.bots.get(s.by); if (b && (b.path.length || b.f !== 6)) scene.place(s.by, tableSeat(i)); }); if (!scene.isAt('boss', BOSS_HEAD)) scene.place('boss', BOSS_HEAD); }
+  setActivity(`${sym} · Boss verdict`, true);
   scene.setHolo(Object.assign({}, scene.holo, { score: v.score }));
-  scene.say('boss', `${v.score}/100 · ${v.stance}`);
+  scene.hop('boss'); scene.say('boss', `${v.score}/100 · ${v.stance}`);
   await dialog('boss', v.lines[0], { auto: RUN.skip ? 900 : 2600, step: 'Verdict' });
-  scene.quiet('boss'); SFX.play('win');
+  scene.quiet('boss'); SFX.play('win'); scene.cheer([...order, 'boss']);
   const pts = awardPoints(item, v);
   renderVerdictCard(ctx, v, done, pts);
   ST.history.unshift({ id: item.id, name: item.name, kind: item.kind, score: v.score, stance: v.stance, at: Date.now() }); ST.history = ST.history.slice(0, 30);
@@ -291,29 +297,34 @@ async function startAnalysis(item) {
   openVerdict(ctx, v, pts);
   hideDialog();
   const ids = [...done.map(s => s.by), 'boss'];
-  setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot');
-  setTimeout(async () => { if (RUN) return; scene.follow(null); ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
+  setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot'); syncNeeds();
+  setTimeout(async () => { if (RUN) return; scene.follow(null); scene.home(); ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && LAST && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
 }
 const nice = s => { s = String(s); return /[a-z]/.test(s) ? s : s.charAt(0) + s.slice(1).toLowerCase(); };
 
 // ---------------------------------------------------------------- presentation message card
 let dlgResolve = null, dlgTimer = null, typeTimer = null;
 function dialog(id, text, o = {}) {
-  const a = ANALYSTS[id]; const d = $('#dialog'); d.hidden = false; d.style.setProperty('--c', BOT.shade(a.color, -0.25));
-  const av = $('.msg-av', d); av.innerHTML = ''; av.append(avatar(id, 40));
+  const a = ANALYSTS[id]; const d = $('#dialog'); d.hidden = false; d.style.setProperty('--c', a.color);
+  const av = $('.msg-av', d); av.innerHTML = ''; av.append(avatar(id, 22));
   $('.msg-name', d).textContent = a.name; $('.msg-role', d).textContent = a.title; $('.msg-step', d).textContent = o.step || '';
-  const body = $('.msg-text', d); body.textContent = '';
+  const body = $('.msg-text', d);
+  const parts = String(text).split(/(\s+)/); body.innerHTML = parts.map(w => /^\s+$/.test(w) ? w : `<span>${esc(w)}</span>`).join('');
+  const words = $$('span', body);
   clearInterval(typeTimer); clearTimeout(dlgTimer);
   const bar = $('.msg-bar i', d); bar.style.transition = 'none'; bar.style.width = '0%';
-  let i = 0; const full = text; d.classList.remove('done');
+  let i = 0; d.classList.remove('done');
+  const all = () => words.forEach(w => w.classList.add('on'));
   return new Promise(res => {
-    dlgResolve = () => { clearInterval(typeTimer); clearTimeout(dlgTimer); body.textContent = full; dlgResolve = null; res(); };
-    const finish = () => { clearInterval(typeTimer); body.textContent = full; d.classList.add('done'); if (o.auto) { requestAnimationFrame(() => { bar.style.transition = `width ${o.auto}ms linear`; bar.style.width = '100%'; }); dlgTimer = setTimeout(() => dlgResolve && dlgResolve(), o.auto); } };
-    if (REDUCE) finish(); else typeTimer = setInterval(() => { i += 3; body.textContent = full.slice(0, i); if (i >= full.length) finish(); }, 16);
+    dlgResolve = () => { clearTimeout(typeTimer); clearTimeout(dlgTimer); all(); dlgResolve = null; res(); };
+    const finish = () => { clearTimeout(typeTimer); all(); d.classList.add('done'); if (o.auto) { requestAnimationFrame(() => { bar.style.transition = `width ${o.auto}ms linear`; bar.style.width = '100%'; }); dlgTimer = setTimeout(() => dlgResolve && dlgResolve(), o.auto); } };
+    if (REDUCE || !words.length) { finish(); return; }
+    const next = () => { if (i >= words.length) { finish(); return; } const w = words[i++]; w.classList.add('on'); typeTimer = setTimeout(next, 60 + Math.min(110, w.textContent.length * 14)); };
+    next();
   });
 }
 function hideDialog() { $('#dialog').hidden = true; }
-function dlgTap() { const d = $('#dialog'); if (!d.classList.contains('done')) { clearInterval(typeTimer); d.classList.add('done'); if (dlgResolve) dlgResolve(); } else if (dlgResolve) dlgResolve(); }
+function dlgTap() { const d = $('#dialog'); clearTimeout(typeTimer); d.classList.add('done'); if (dlgResolve) dlgResolve(); }
 
 // ---------------------------------------------------------------- tower progression
 function awardPoints(item, v) {
@@ -338,7 +349,8 @@ function progressHTML() {
 function renderProgress() { const p = $('#progress'); if (p) p.innerHTML = progressHTML(); updateStatus(); }
 function updateStatus() {
   if (!scene) return; const s = scene.stats(); const n = Object.keys(ANALYSTS).filter(id => id !== 'you' && unlocked(id)).length;
-  $('#stSub').textContent = `${n} analysts · ${s.working} working · Level ${level()}`;
+  $('#stTime').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  $('#stBots').textContent = `${n} bots · Lvl ${level()}`;
   $('#cMove').textContent = s.moving; $('#cWork').textContent = s.working; $('#cWait').textContent = ST.inbox.length;
   const wc = $('#wcount'); wc.textContent = ST.inbox.length; wc.classList.toggle('zero', !ST.inbox.length);
   $$('.cur-t button').forEach(b => b.classList.toggle('on', b.dataset.c === ST.cur));
@@ -347,30 +359,43 @@ function updateStatus() {
 // ---------------------------------------------------------------- waiting on me
 function addInbox(it) { it.at = Date.now(); ST.inbox = ST.inbox.filter(x => x.key !== it.key); ST.inbox.unshift(it); ST.inbox = ST.inbox.slice(0, 12); save(); renderInbox(); }
 function itemOf(x) { return { id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand }; }
+const leanOf = x => x.score >= 55 ? 'bull' : x.score <= 45 ? 'bear' : null;
+function question(x) {
+  if (x.type === 'analysis') { const d = leanOf(x); return `${x.sym} scored ${x.score}/100, ${String(x.stance || '').toLowerCase()}. ${d ? `Log a ${d === 'bull' ? 'bullish' : 'bearish'} call at ${fmtMoney(x.price, x.cur)}?` : 'Add it to your watchlist?'}`; }
+  if (x.type === 'move') return `${x.title}. Run the team on it again?`;
+  if (x.type === 'call') return `${x.title} (${x.sub}). Re-check it?`;
+  if (x.type === 'due') return `${x.title}. Re-check it now?`;
+  return x.title;
+}
+function syncNeeds() {
+  if (!scene) return; const by = new Set(ST.inbox.map(x => x.by).filter(Boolean));
+  for (const id of Object.keys(ANALYSTS)) if (id !== 'you') scene.needs(id, !RUN && by.has(id) ? 'Needs you' : null);
+}
 function renderInbox() {
-  const host = $('#wlist'); if (!host) return; updateStatus();
-  if (!ST.inbox.length) { host.innerHTML = `<div class="empty">Nothing needs you. Watchlist moves over 5%, calls ready to score and finished analyses show up here.</div>${LAST && isLand() ? '<button class="btn tiny repbtn" id="openRep">Open last report</button>' : ''}`; const r = $('#openRep'); if (r) r.onclick = () => document.body.classList.add('rep-open'); return; }
-  const kind = { analysis: 'Analysis ready', move: 'Watchlist move', call: 'Call scored', due: 'Call due' };
-  host.innerHTML = ST.inbox.map((x, i) => `<div class="wi" data-i="${i}"><span class="wi-av"></span><div class="wi-m"><div class="wi-k">${kind[x.type] || ''} · ${W.ago(x.at)}</div><div class="wi-t">${esc(x.title)}</div><div class="wi-s">${esc(x.sub || '')}</div>
-  <div class="wi-a"><button class="btn go" data-act="open">Open</button>${x.price ? '<button class="btn" data-act="call">Make call</button>' : ''}<button class="btn ghost" data-act="dismiss">Dismiss</button></div></div></div>`).join('');
+  const host = $('#wlist'); if (!host) return; updateStatus(); syncNeeds();
+  if (!ST.inbox.length) { host.innerHTML = `<div class="empty">Nothing needs you. Watchlist moves over 5%, calls ready to score and finished analyses land here.</div>${LAST && isLand() ? '<button class="btn tiny repbtn" id="openRep">Open last report</button>' : ''}`; const r = $('#openRep'); if (r) r.onclick = () => document.body.classList.add('rep-open'); return; }
+  host.innerHTML = ST.inbox.map((x, i) => { const a = ANALYSTS[x.by] || ANALYSTS.boss; return `<div class="wi" data-i="${i}"><div class="wi-h"><span class="wi-av"></span><b>${esc(a.name)}</b><span class="wi-ago">${esc(W.ago(x.at))}</span></div><div class="wi-q">${esc(question(x))}</div>
+  <div class="wi-a"><button class="btn ok" data-act="approve">Approve</button><button class="btn rp" data-act="reply">Reply</button><button class="btn sk" data-act="skip">Skip</button></div></div>`; }).join('');
   $$('.wi', host).forEach(el => {
-    const x = ST.inbox[+el.dataset.i]; $('.wi-av', el).append(avatar(x.by || 'boss', 34));
+    const x = ST.inbox[+el.dataset.i]; $('.wi-av', el).append(avatar(x.by || 'boss', 24));
     $$('[data-act]', el).forEach(b => b.onclick = () => inboxAct(x, b.dataset.act, el));
   });
 }
+function dropInbox(x) { ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); }
+function openReport(x) { if (LAST && LAST.sym === x.sym) { if (isLand()) document.body.classList.add('rep-open'); else openVerdict(LAST.ctx, LAST.v, null); return true; } return false; }
 function inboxAct(x, act, el) {
-  if (act === 'dismiss') { ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); if (x.by) scene.needs(x.by, null); return; }
-  if (act === 'open') {
-    if (x.type === 'analysis' && LAST && LAST.sym === x.sym) { if (isLand()) document.body.classList.add('rep-open'); else openVerdict(LAST.ctx, LAST.v, null); return; }
-    ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); startAnalysis(itemOf(x)); return;
+  if (act === 'skip') { dropInbox(x); return; }
+  if (act === 'approve') {
+    if (x.type === 'analysis') { const d = leanOf(x); dropInbox(x); if (d) logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, d); else addWatch({ id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand }); return; }
+    dropInbox(x); startAnalysis(itemOf(x)); return;
   }
-  if (act === 'call') {
-    const row = $('.wi-a', el); row.innerHTML = '<button class="btn bull" data-d="bull">Bullish</button><button class="btn bear" data-d="bear">Bearish</button><button class="btn ghost" data-d="x">Cancel</button>';
-    $$('[data-d]', row).forEach(b => b.onclick = () => { if (b.dataset.d === 'x') { renderInbox(); return; } logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, b.dataset.d); ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); });
+  if (act === 'reply') {
+    if (x.type === 'analysis') { if (!openReport(x)) { dropInbox(x); startAnalysis(itemOf(x)); } return; }
+    if (x.type === 'call' || x.type === 'due') { showTab('calls'); return; }
+    const row = $('.wi-a', el); row.innerHTML = '<button class="btn bull" data-d="bull">Bullish call</button><button class="btn bear" data-d="bear">Bearish call</button><button class="btn sk" data-d="x">Cancel</button>';
+    $$('[data-d]', row).forEach(b => b.onclick = () => { if (b.dataset.d === 'x') { renderInbox(); return; } logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, b.dataset.d); dropInbox(x); });
   }
 }
-
-// ---------------------------------------------------------------- calls
 function callTarget(ctx) { return { id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price: ctx.crypto ? ctx.live : ctx.s.price, cur: ctx.cur, score: LAST && LAST.sym === ctx.item.id ? LAST.v.score : null }; }
 function logCall(t, dir) {
   if (!t.price) { toast('No live price to log this call against.'); return; }
@@ -431,8 +456,8 @@ async function tapUser(w, q) {
   SFX.play('alert'); if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
   if (RUN) return;
   stopIdle(); scene.needs(id, 'Needs you'); scene.follow(id);
-  await scene.walk(id, { f: 0, gx: 8.35, gy: 3.0, pose: 'tap' }, 1.5); if (RUN) return;
-  scene.say(id, `${w.id} ${W.pct(q.chg, 1)}`); await sleep(4500); scene.quiet(id); scene.needs(id, null); scene.follow(null);
+  await scene.walk(id, { f: 0, gx: 8.42, gy: 3.45, pose: 'tap' }, 1.5); if (RUN) return;
+  scene.say(id, `${w.id} ${W.pct(q.chg, 1)}`); await sleep(4500); scene.quiet(id); syncNeeds(); scene.follow(null);
   if (!RUN) { scene.goHome(id); startIdle(); }
 }
 function renderWatch() {
@@ -483,7 +508,7 @@ const TABS = ['floor', 'calls', 'watch', 'profile'];
 function showTab(t) {
   TABS.forEach(x => { $('#tab-' + x).classList.toggle('on', x === t); });
   TabBar.set(TABS.indexOf(t));
-  if (t === 'floor') { scene.start(); requestAnimationFrame(() => scene.resize()); } else { scene.stop(); $('#floorRail').classList.add('hide'); }
+  if (t === 'floor') { scene.start(); requestAnimationFrame(() => applyLayout()); } else scene.stop();
   if (t === 'calls') { renderCalls(); scoreCalls(); }
   if (t === 'watch') { renderWatch(); pollWatch(); }
   if (t === 'profile') renderProfile();
@@ -496,41 +521,54 @@ function renderChips() {
   $('#chips').innerHTML = list.map(s => `<button class="chipb" data-s="${esc(s)}">${esc(s)}</button>`).join('');
   $$('#chips .chipb').forEach(b => b.onclick = async () => { await DATA.loadSearch(); const it = DATA.search.find(x => x.id === b.dataset.s && (['BTC', 'ETH', 'SOL'].includes(b.dataset.s) ? x.kind === 'crypto' : x.kind !== 'crypto')) || DATA.search.find(x => x.id === b.dataset.s); if (it) startAnalysis(it); });
 }
-function renderFloorRail() {
-  const r = $('#floorRail'); r.innerHTML = FLOORS.map((f, i) => `<button data-f="${i}" aria-label="${esc(f.name)}" title="${esc(f.name)}">${f.short}</button>`).reverse().join('');
-  $$('button', r).forEach(b => b.onclick = () => { scene.focusFloor(+b.dataset.f); });
-  scene.onFloor = f => $$('button', r).forEach(b => b.classList.toggle('on', +b.dataset.f === f));
-  scene.onFloor(scene.curF);
-}
 function applyLayout() {
   const land = isLand(); document.body.classList.toggle('land', land);
-  scene.resize();
+  requestAnimationFrame(() => {
+    if (land) { const tb = $('.tabbar').getBoundingClientRect(), sd = $('#side').getBoundingClientRect(), st = $('#status').getBoundingClientRect(); scene.setInsets({ l: Math.round(tb.right + 4), r: Math.round(innerWidth - sd.left + 4), t: Math.round(st.bottom + 2), b: 6 }); }
+    else scene.setInsets({ l: 0, r: 0, t: 0, b: 0 });
+  });
   renderInbox();
 }
 
 // ---------------------------------------------------------------- idle life in the tower
 let idleOn = true, tripN = 0; const trips = new Map();
+const G = (x, z) => ({ gx: (x + 6) / 1.2, gy: (z + 4) / 2 });
+const SOFA_TOP = [0.2, 0.9, 1.6].map(x => Object.assign({ f: 6, pose: 'sofa', via: [G(x, 2.98), G(2.3, 2.98)] }, G(x, 2.62)));
+const SOFA_LOBBY = [-2.38, -1.68, -0.98].map(x => Object.assign({ f: 0, pose: 'sofa' }, G(x, 2.15)));
+const SPOTS = () => {
+  const s = [
+    Object.assign({ f: 6, pose: 'stand', back: true, line: 'Nice view tonight.' }, G(4.75, -3.25)),
+    Object.assign({ f: 6, pose: 'stand', back: true, line: 'screen' }, G(1.85, -1.8)),
+    Object.assign({ f: 6, pose: 'type', line: 'Borrowing a hot desk.' }, G(-4.55, -2.42)),
+    Object.assign({ f: 6, pose: 'type', line: null }, G(-2.75, -2.42))
+  ];
+  if (unlocked('lounge')) s.push(Object.assign({ f: 0, pose: 'stand', back: true, line: 'Coffee!' }, G(-4.75, 2.1)));
+  if (unlocked('trading')) s.push(Object.assign({ f: 5, pose: 'stand', back: true, line: 'screen' }, G(2.2 + Math.random() * 2, 2.35)));
+  return s;
+};
+const CHAT = [['Coffee run?', 'Always.'], ['Busy day?', 'Charts never sleep.'], ['Lift\'s quick today.', 'Express to the top.'], ['Ask me anything.', 'Real data only.'], ['What are we watching?', 'Whatever he asks.']];
+function tickerLine() { const t = scene.ticker.filter(x => /[+-]\d/.test(x.t)); if (!t.length) return null; const x = pick(t); const up = /\+/.test(x.t); return [`${x.t} today.`, up ? pick(['Strong tape.', 'Holding up well.', 'Nice move.']) : pick(['Ouch.', 'Watching that one.', 'Soft today.'])]; }
 function stopIdle() { idleOn = false; trips.clear(); }
 function startIdle() { idleOn = true; }
-const SOFA = [[3.1, 1.45], [3.6, 1.45], [4.1, 1.45]];
 async function idleTick() {
-  if (!idleOn || RUN || document.hidden || !$('#tab-floor').classList.contains('on') || trips.size >= 2) return;
+  if (!idleOn || RUN || document.hidden || !$('#tab-floor').classList.contains('on') || trips.size >= 3) return;
   const ids = Object.keys(ANALYSTS).filter(id => id !== 'you' && unlocked(id) && scene.isHome(id) && !trips.has(id)); if (!ids.length) return;
-  const id = ids[Math.floor(Math.random() * ids.length)], a = ANALYSTS[id], h = a.home; const n = ++tripN; trips.set(id, n);
+  const id = pick(ids), n = ++tripN; trips.set(id, n);
   const alive = () => idleOn && !RUN && trips.get(id) === n;
-  const r = Math.random(); let dest, wait = 5000, line = null;
-  const used = new Set([...scene.bots.values()].filter(b => b.f === 0 && b.state === 'sofa').map(b => b.gx.toFixed(2)));
-  const free = SOFA.filter(s => !used.has(s[0].toFixed(2)));
-  if (r < 0.4 && free.length) { const s = free[Math.floor(Math.random() * free.length)]; dest = { f: 0, gx: s[0], gy: s[1], pose: 'sofa' }; wait = 8000 + Math.random() * 6000; }
-  else if (r < 0.65) { const x0 = h.gx < 5 ? 0.9 : 5.9; dest = { f: h.f, gx: x0 + Math.random() * 3.2, gy: 0.75, pose: 'stand', back: true }; wait = 4500; }
-  else if (r < 0.85) { const other = Object.keys(ANALYSTS).filter(o => o !== id && o !== 'you' && unlocked(o) && ANALYSTS[o].home.f !== 0); const o = other[Math.floor(Math.random() * other.length)]; const oh = ANALYSTS[o].home; dest = { f: oh.f, gx: oh.gx - 0.7, gy: 3.0, pose: 'talk' }; wait = 4000; }
-  else if (unlocked('lounge')) { dest = { f: 0, gx: 1.05, gy: 1.1, pose: 'stand', look: -1 }; wait = 4000; }
-  else if (unlocked('trading')) { dest = { f: 5, gx: 6.5 + Math.random() * 2.4, gy: 2.8, pose: 'stand', back: true }; wait = 5000; }
-  else { dest = { f: h.f, gx: h.gx + 1.2, gy: 3.0, pose: 'stand' }; wait = 3000; }
+  const busy = new Set([...scene.bots.values()].filter(b => b.at && b.at.pose === 'sofa').map(b => b.at.f + ':' + b.gx.toFixed(2)));
+  const r = Math.random(); let dest, wait = 5000, line = null, partner = null;
+  const sofas = [...SOFA_TOP, ...SOFA_LOBBY].filter(s => !busy.has(s.f + ':' + s.gx.toFixed(2)));
+  if (r < 0.3 && sofas.length) { dest = pick(sofas); wait = 7000 + Math.random() * 6000; line = pick(['Break time.', 'Two minutes.', null]); }
+  else if (r < 0.62) { const others = Object.keys(ANALYSTS).filter(o => o !== id && o !== 'you' && unlocked(o) && scene.isHome(o)); if (others.length) { partner = pick(others); const h = ANALYSTS[partner].home; dest = { f: h.f, gx: h.gx + 0.62, gy: h.gy + 0.18, pose: 'talk', face: { gx: h.gx, gy: h.gy } }; wait = 900; } }
+  if (!dest) { const sp = pick(SPOTS()); dest = sp; line = sp.line === 'screen' ? (tickerLine() || ['Markets.'])[0] : sp.line; wait = 4500; }
   try {
     const ok = await scene.walk(id, dest, 1); if (!ok || !alive()) return;
+    if (partner) {
+      const pair = Math.random() < 0.55 ? (tickerLine() || pick(CHAT)) : pick(CHAT);
+      scene.say(id, pair[0]); await sleep(1900); scene.quiet(id); if (!alive()) return;
+      scene.say(partner, pair[1]); scene.hop(partner); await sleep(1900); scene.quiet(partner); if (!alive()) return;
+    } else if (line) { scene.say(id, line); await sleep(2200); scene.quiet(id); }
     await sleep(wait); if (!alive()) return;
-    const b = scene.bots.get(id); if (b && b.state === 'talk') b.state = 'stand';
     await scene.goHome(id);
   } finally { if (trips.get(id) === n) trips.delete(id); }
 }
@@ -538,11 +576,11 @@ async function idleTick() {
 // ---------------------------------------------------------------- boot
 async function boot() {
   scene = new Tower($('#tower'));
-  roster(); renderFloorRail(); new IntersectionObserver(es => { const on = es[0].isIntersecting && $('#tab-floor').classList.contains('on'); $('#floorRail').classList.toggle('hide', !on); }, { threshold: 0.05 }).observe($('#towerWrap'));
+  roster(); $('#stIco').append(avatar('boss', 22), avatar('chartist', 22), avatar('crypto', 22));
   TabBar.init($('.tabbar'), i => showTab(TABS[i]));
   applyLayout(); matchMedia('(orientation: landscape) and (max-height: 560px)').addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
   scene.start();
-  scene.onBotTap = id => { if (RUN) return; const a = ANALYSTS[id]; if (id === 'you') { toast('That\'s you. Bots come down here when something needs you.'); return; } scene.say(id, a.title); setTimeout(() => scene.quiet(id), 2200); toast(`<b>${esc(a.name)}</b> · ${esc(a.title)}`); };
+  scene.onBotTap = id => { if (RUN) return; const a = ANALYSTS[id]; if (id === 'you') { toast('That\'s you. Bots come down here when something needs you.'); return; } scene.hop(id); scene.say(id, a.title); setTimeout(() => scene.quiet(id), 2200); toast(`<b>${esc(a.name)}</b> · ${esc(a.title)}`); };
   $('#ask').onsubmit = e => { e.preventDefault(); const v = askIn().value.trim(); if (!v) return; $('#ac').hidden = true; askIn().blur(); askIn().value = ''; startAnalysis(v); };
   askIn().addEventListener('input', onType); askIn().addEventListener('focus', onType);
   document.addEventListener('click', e => { if (!e.target.closest('#ask')) $('#ac').hidden = true; });
@@ -560,7 +598,7 @@ async function boot() {
   const t = (location.hash || '').slice(1); if (TABS.includes(t) && t !== 'floor') showTab(t);
   const sp = new URLSearchParams(location.search); const ask = sp.get('ask'); if (ask) startAnalysis(ask);
   if (sp.has('noidle')) stopIdle();
-  setInterval(idleTick, 3500);
+  setInterval(idleTick, 3200);
   scoreCalls(); pollWatch(); setInterval(pollWatch, 60000); setInterval(scoreCalls, 3600000);
   document.addEventListener('visibilitychange', () => { if (document.hidden) scene.stop(); else if ($('#tab-floor').classList.contains('on')) scene.start(); });
 }
