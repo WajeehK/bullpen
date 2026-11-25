@@ -1,6 +1,6 @@
 /* Blackrock service worker: versioned shell cache, network-first data. */
-const V = 'blackrock-b5';
-const SHELL = ['./', 'index.html', 'css/style.css?v=b5', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b5', 'js/tower.js?v=b5', 'js/analysis.js?v=b5', 'js/data.js?v=b5', 'js/chart.js?v=b5', 'js/tabbar.js?v=b5', 'js/app.js?v=b5', 'manifest.webmanifest', 'icons/br-icon-192.png', 'icons/br-icon-512.png'];
+const V = 'blackrock-b6';
+const SHELL = ['./', 'index.html', 'css/style.css?v=b6', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b6', 'js/tower.js?v=b6', 'js/analysis.js?v=b6', 'js/data.js?v=b6', 'js/chart.js?v=b6', 'js/tabbar.js?v=b6', 'js/app.js?v=b6', 'manifest.webmanifest', 'icons/br-icon-192.png', 'icons/br-icon-512.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

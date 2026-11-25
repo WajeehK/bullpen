@@ -59,9 +59,8 @@ main{max-width:720px;margin:0 auto;padding:12px 12px 0}
 .stage{position:relative}
 .tower-wrap{position:relative;height:clamp(360px,66svh,640px);border-radius:22px;overflow:hidden;background:#17181d;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 18px 40px rgba(0,0,0,.4)}
 .tower{position:absolute;inset:0}
-.t3{overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
-.t3-cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-.t3-cv:active{cursor:grabbing}
+.t3{overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.t3-cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y;cursor:default}
 .t3-ovl{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .t3-nogl{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--mut);font-size:13px}
 .b3{position:absolute;left:0;top:0;width:0;height:0;will-change:transform}

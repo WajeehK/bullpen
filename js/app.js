@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b5';
+const BUILD = 'b6';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -238,7 +238,7 @@ async function startAnalysis(item) {
   const crypto = item.kind === 'crypto', sym = item.id;
   const order = (crypto ? ORDER_COIN : ORDER_STOCK).filter(id => unlocked(id) && (id !== 'earnings' || !crypto));
   $('#report').innerHTML = '<button class="rep-x" id="repClose" type="button">Close</button>'; $('#repClose').onclick = () => document.body.classList.remove('rep-open');
-  stopIdle(); syncNeeds(); scene.follow(null); scene.capTop = innerHeight - 160; scene.frameTable();
+  stopIdle(); syncNeeds();
   for (const id of Object.keys(ANALYSTS)) { scene.quiet(id); if (id !== 'you' && !order.includes(id) && id !== 'boss' && !scene.isHome(id)) scene.goHome(id, 1.4); }
   setActivity(`${sym} · team to the table`, true);
   // v1 flow: the Boss calls everyone to the top-floor table while the real data loads
@@ -248,7 +248,7 @@ async function startAnalysis(item) {
   const gather = Promise.all([scene.walk('boss', BOSS_HEAD, 1.2), ...order.map((id, i) => sleep(i * 240).then(() => scene.walk(id, seats.get(id), 1.45)))]);
   let ctx;
   try { [ctx] = await Promise.all([buildContext(item), intro]); }
-  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); hideDialog(); setBusy(false); setActivity('Tap a bot'); RUN = null; syncNeeds(); scene.home(); order.forEach((id, i) => setTimeout(() => scene.goHome(id, 1.2), i * 300)); scene.goHome('boss'); startIdle(); return; }
+  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); hideDialog(); setBusy(false); setActivity('Tap a bot'); RUN = null; syncNeeds(); order.forEach((id, i) => setTimeout(() => scene.goHome(id, 1.2), i * 300)); scene.goHome('boss'); startIdle(); return; }
   scene.quiet('boss');
   const closes = ctx.bars.map(b => b[4]).slice(-120);
   scene.setHolo({ series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) });
@@ -298,7 +298,7 @@ async function startAnalysis(item) {
   hideDialog();
   const ids = [...done.map(s => s.by), 'boss'];
   setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot'); syncNeeds();
-  setTimeout(async () => { if (RUN) return; scene.follow(null); scene.home(); ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && LAST && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
+  setTimeout(async () => { if (RUN) return; ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && LAST && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
 }
 const nice = s => { s = String(s); return /[a-z]/.test(s) ? s : s.charAt(0) + s.slice(1).toLowerCase(); };
 
@@ -455,9 +455,9 @@ async function tapUser(w, q) {
   addInbox({ type: 'move', key: `m|${w.id}|${new Date().toDateString()}`, sym: w.id, kind: w.kind, name: w.name, ondemand: w.ondemand, price: q.p, cur: q.cur, by: id, title: `${w.id} is ${q.chg > 0 ? 'up' : 'down'} ${W.pctAbs(q.chg)} today`, sub: `${fmtMoney(q.p, q.cur)} · ${ANALYSTS[id].name} spotted it` });
   SFX.play('alert'); if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
   if (RUN) return;
-  stopIdle(); scene.needs(id, 'Needs you'); scene.follow(id);
+  stopIdle(); scene.needs(id, 'Needs you');
   await scene.walk(id, { f: 0, gx: 8.42, gy: 3.45, pose: 'tap' }, 1.5); if (RUN) return;
-  scene.say(id, `${w.id} ${W.pct(q.chg, 1)}`); await sleep(4500); scene.quiet(id); syncNeeds(); scene.follow(null);
+  scene.say(id, `${w.id} ${W.pct(q.chg, 1)}`); await sleep(4500); scene.quiet(id); syncNeeds();
   if (!RUN) { scene.goHome(id); startIdle(); }
 }
 function renderWatch() {

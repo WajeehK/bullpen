@@ -1,6 +1,6 @@
 /* Blackrock Tower v4: three.js low-poly isometric cutaway office tower.
    Orthographic 3/4 camera, procedural geometry merged per material, blob bots with HTML name tags and bubbles,
-   lift rides between floors, drag-to-pan with inertia, pinch zoom, tap-to-focus, throttled rendering. */
+   lift rides between floors, fixed camera, tap a bot for its name, throttled rendering. */
 'use strict';
 const TW = { W: 12, D: 8, FH: 2.7, SLAB: 0.24, N: 7, TOPW: 2.3, AZ: 26 * Math.PI / 180, EL: 34 * Math.PI / 180, LIFT_X: 6.77, LIFT_Z: -2.6, DOOR_X: 5.35, TX: -1.0, TZ: 0.4, TRX: 1.45, TRZ: 0.72, BOT_R: 0.32, BOT_H: 0.84, BOT_S: 1.12 };
 TW.HW = TW.W / 2; TW.HD = TW.D / 2; TW.IH = TW.FH - TW.SLAB;
@@ -476,100 +476,46 @@ class Tower {
     c.left = -fr.cx / k; c.right = (this.w - fr.cx) / k; c.top = fr.cy / k; c.bottom = -(this.h - fr.cy) / k;
     c.updateProjectionMatrix(); c.updateMatrixWorld();
   }
-  homeView() {
-    const fr = this.free(), t = this.bTop, z = 1, k = this.basePPU * z;
-    return { u: (t.u0 + t.u1) / 2, v: t.v1 - (fr.cy - fr.y - 4) / k, zoom: z };
-  }
-  home(instant) { const hv = this.homeView(); this.followId = null; this.camTo(hv.u, hv.v, hv.zoom, instant); }
-  camTo(u, v, zoom = this.zoom, instant) {
-    if (instant || this.reduce) { this.u = u; this.v = v; this.zoom = zoom; this.clamp(); this.anim = null; this.dirty = true; return; }
-    this.anim = { u0: this.u, v0: this.v, z0: this.zoom, u1: u, v1: v, z1: zoom, t0: performance.now(), dur: 650 }; this.kick();
-  }
-  focusFloor(f, o = {}) {
-    this.curF = f; this.onFloor && this.onFloor(f);
-    if (f === 6) { this.home(o.instant); return; }
-    const p = this.uvOf(0.4, f * TW.FH + 1.1, 2.6); this.camTo(p.u, p.v, Math.max(this.zoom, 1), o.instant);
-  }
-  frameTable() {
-    const fr = this.free(), land = this.w > this.h * 1.3, z = land ? 1.22 : 1;
-    if (!land) { this.home(); return; }
-    const capTop = Math.min(fr.y + fr.h, this.capTop || this.h), ay = (fr.y + capTop) / 2, k = this.basePPU * z, p = this.uvOf(TW.TX + 0.9, 6 * TW.FH + 0.4, TW.TZ - 0.2);
-    this.followId = null; this.camTo(p.u, p.v + (ay - fr.cy) / k, z);
-  }
-  follow(id) { this.followId = id || null; if (id) { this.userAt = 0; this.kick(); } }
-  screenOf(x, y, z) { const v = this._sv || (this._sv = new THREE.Vector3()); v.set(x, y, z).project(this.cam); return { x: (v.x + 1) / 2 * this.w, y: (1 - v.y) / 2 * this.h }; }
-  stepCam(dt, now) {
-    let act = false;
-    if (this.anim) { const a = this.anim, k = Math.min(1, (now - a.t0) / a.dur), e = 1 - Math.pow(1 - k, 3); this.u = a.u0 + (a.u1 - a.u0) * e; this.v = a.v0 + (a.v1 - a.v0) * e; this.zoom = a.z0 + (a.z1 - a.z0) * e; if (k >= 1) this.anim = null; act = true; }
-    else if (!this.ptrs.size && (Math.abs(this.vel.u) > 1e-5 || Math.abs(this.vel.v) > 1e-5)) { this.u += this.vel.u * dt * 1000; this.v += this.vel.v * dt * 1000; const f = Math.pow(0.9, dt * 60); this.vel.u *= f; this.vel.v *= f; if (Math.abs(this.vel.u) < 2e-5 && Math.abs(this.vel.v) < 2e-5) this.vel.u = this.vel.v = 0; act = true; }
-    else if (this.followId && !this.ptrs.size && now - (this.userAt || 0) > 4000) {
-      const b = this.bots.get(this.followId);
-      if (b && !b.hidden) {
-        const s = this.screenOf(b.g.position.x, b.g.position.y + 0.5, b.g.position.z), fr = this.free(), m = Math.min(70, fr.h * 0.18);
-        if (s.x < fr.x + m || s.x > fr.x + fr.w - m || s.y < fr.y + m || s.y > fr.y + fr.h - m) {
-          const k = this.ppu(), tu = this.u + (s.x - fr.cx) / k, tv = this.v - (s.y - fr.cy) / k; const e = Math.min(1, dt * 3.2);
-          this.u += (tu - this.u) * e; this.v += (tv - this.v) * e; act = true;
-        }
-      }
+  lockCam() {
+    const fr = this.free(), land = this.w > this.h * 1.3, t = this.bTop;
+    if (!land) {
+      const k = this.basePPU;
+      this.u = (t.u0 + t.u1) / 2; this.v = t.v1 - (fr.cy - fr.y - 4) / k; this.zoom = 1;
+    } else {
+      // one framed view: meeting table sits in the band above a reserved caption strip
+      const z = 1.18, k = this.basePPU * z, capTop = fr.y + fr.h - 124, ay = (fr.y + capTop) / 2;
+      const p = this.uvOf(TW.TX + 0.55, 6 * TW.FH + 0.35, TW.TZ + 0.15);
+      this.u = p.u; this.v = p.v + (ay - fr.cy) / k; this.zoom = z;
     }
-    if (act) this.clamp();
-    return act;
+    this.anim = null; this.vel.u = this.vel.v = 0; this.followId = null; this.dirty = true;
   }
-  // ------------------------------------------------------------------ input
+  home() { this.lockCam(); }
+  camTo() { this.lockCam(); }
+  focusFloor(f) { this.curF = f; this.onFloor && this.onFloor(f); }
+  frameTable() { this.lockCam(); }
+  follow() {}
+  screenOf(x, y, z) { const v = this._sv || (this._sv = new THREE.Vector3()); v.set(x, y, z).project(this.cam); return { x: (v.x + 1) / 2 * this.w, y: (1 - v.y) / 2 * this.h }; }
+  stepCam() { return false; }
+  // ------------------------------------------------------------------ input (tap a bot only; never move the camera, never block page scroll)
   input() {
     const el = this.r.domElement;
     const pos = e => { const r = el.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-    el.addEventListener('pointerdown', e => {
-      try { el.setPointerCapture(e.pointerId); } catch (_) { }
-      const p = pos(e); this.ptrs.set(e.pointerId, { x: p.x, y: p.y, x0: p.x, y0: p.y, t0: performance.now(), tl: performance.now() });
-      this.anim = null; this.vel.u = this.vel.v = 0; this.userAt = performance.now(); this.moved = this.ptrs.size > 1 ? true : false;
-      if (this.ptrs.size === 2) { const [a, b] = [...this.ptrs.values()]; this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
-      this.kick();
+    let down = null;
+    el.addEventListener('pointerdown', e => { const p = pos(e); down = { id: e.pointerId, x: p.x, y: p.y, t0: performance.now() }; });
+    el.addEventListener('pointerup', e => {
+      if (!down || down.id !== e.pointerId) return;
+      const p = pos(e), d = down; down = null;
+      if (Math.hypot(p.x - d.x, p.y - d.y) < 8 && performance.now() - d.t0 < 400) this.tap(p.x, p.y);
     });
-    el.addEventListener('pointermove', e => {
-      const q = this.ptrs.get(e.pointerId); if (!q) return; const p = pos(e), now = performance.now();
-      const dx = p.x - q.x, dy = p.y - q.y, dtm = Math.max(1, now - q.tl); q.x = p.x; q.y = p.y; q.tl = now; this.userAt = now;
-      if (Math.hypot(p.x - q.x0, p.y - q.y0) > 7) this.moved = true;
-      const k = this.ppu();
-      if (this.ptrs.size === 1) {
-        if (!this.moved) return;
-        this.u -= dx / k; this.v += dy / k;
-        const iu = -dx / k / dtm, iv = dy / k / dtm; this.vel.u = this.vel.u * 0.3 + iu * 0.7; this.vel.v = this.vel.v * 0.3 + iv * 0.7;
-      } else if (this.ptrs.size === 2 && this.pinch) {
-        const [a, b] = [...this.ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-        this.u -= (mx - this.pinch.mx) / k; this.v += (my - this.pinch.my) / k;
-        this.zoomAt(this.zoom * d / (this.pinch.d || d), mx, my);
-        this.pinch = { d, mx, my }; this.vel.u = this.vel.v = 0;
-      }
-      this.clamp(); this.dirty = true; this.kick();
-    });
-    const up = e => {
-      const q = this.ptrs.get(e.pointerId); if (!q) return; this.ptrs.delete(e.pointerId);
-      const now = performance.now(); if (this.ptrs.size < 2) this.pinch = null;
-      if (now - q.tl > 90) this.vel.u = this.vel.v = 0;
-      if (!this.ptrs.size && !this.moved && e.type === 'pointerup' && now - q.t0 < 400) this.tap(q.x, q.y);
-      if (this.ptrs.size === 1) { const r = [...this.ptrs.values()][0]; r.x0 = r.x; r.y0 = r.y; }
-      this.kick();
-    };
-    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-    el.addEventListener('wheel', e => { e.preventDefault(); const p = pos(e); this.userAt = performance.now(); this.zoomAt(this.zoom * Math.exp(-e.deltaY * 0.0015), p.x, p.y); this.clamp(); this.dirty = true; this.kick(); }, { passive: false });
+    el.addEventListener('pointercancel', () => { down = null; });
   }
-  zoomAt(z, sx, sy) {
-    z = Math.max(0.55, Math.min(3.2, z)); const fr = this.free(), k0 = this.ppu(), k1 = this.basePPU * z;
-    this.u += (sx - fr.cx) * (1 / k0 - 1 / k1); this.v -= (sy - fr.cy) * (1 / k0 - 1 / k1); this.zoom = z;
-  }
-  occluded(b) { return b.f < 6 && !b.riding && b.g.position.z < 1.15 && b.g.position.x < 6; }
   tap(x, y) {
     let best = null, bd = 34;
     for (const b of this.bots.values()) { if (b.hidden || this.occluded(b)) continue; const s = this.screenOf(b.g.position.x, b.g.position.y + 0.4, b.g.position.z); const d = Math.hypot(s.x - x, s.y - y); if (d < bd) { bd = d; best = b; } }
-    const now = performance.now();
-    if (best) {
-      const fr = this.free(), k = this.ppu(), s = this.screenOf(best.g.position.x, best.g.position.y + 0.4, best.g.position.z), z = Math.max(this.zoom, 1.45);
-      const pu = this.u + (s.x - fr.cx) / k, pv = this.v - (s.y - fr.cy) / k; this.camTo(pu, pv, z);
-      this.onBotTap && this.onBotTap(best.id);
-    } else if (now - (this._lastTap || 0) < 320) this.home();
-    this._lastTap = best ? 0 : now;
+    if (best && this.onBotTap) this.onBotTap(best.id);
   }
+  occluded(b) { return b.f < 6 && !b.riding && b.g.position.z < 1.15 && b.g.position.x < 6; }
+
   // ------------------------------------------------------------------ loop & overlays
   kick() { this.dirty = true; if (this.running && !this.raf) { this.last = 0; this.raf = requestAnimationFrame(this._loop); } }
   loop(ts) {
@@ -612,8 +558,7 @@ class Tower {
     const fr = this.free(), t = this.bTop, uw = t.u1 - t.u0, vh = t.v1 - t.v0;
     const land = w > h * 1.3;
     this.basePPU = land ? Math.min(fr.w * 0.97 / uw, fr.h * 1.02 / vh) : fr.w * 0.98 / uw;
-    if ((changed || rehome) && !this.followId) { const hv = this.homeView(); this.u = hv.u; this.v = hv.v; this.zoom = 1; }
-    this.clamp(); this.dirty = true;
+    this.lockCam();
     if (this.running && this.r && this.visible) this.draw();
   }
   setLayout() { this.resize(true); }
