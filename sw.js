@@ -1,5 +1,5 @@
 /* Bullpen service worker: versioned shell cache, network-first data. */
-const V = 'bullpen-b1';
+const V = 'bullpen-b2';
 const SHELL = ['./', 'index.html', 'css/style.css?v=b1', 'js/pixel.js?v=b1', 'js/scene.js?v=b1', 'js/analysis.js?v=b1', 'js/data.js?v=b1', 'js/chart.js?v=b1', 'js/app.js?v=b1', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));

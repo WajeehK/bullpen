@@ -111,7 +111,7 @@ class FloorScene {
       PX.poly(c, [this.iso(4.2, 4.2, 9), this.iso(6.2, 4.2, 9), this.iso(6.2, 6.2, 9), this.iso(4.2, 6.2, 9)], '#4a4070');
     });
     // holo display on the table (dynamic)
-    this.dyn(5.2 + 5.2 + 0.5, (c, t) => this.drawHolo(c, t));
+    this.dyn(99, (c, t) => this.drawHolo(c, t));
     // desks
     for (const ch of this.chars.values()) {
       const d = ch.desk; if (!d) continue;
@@ -178,11 +178,12 @@ class FloorScene {
       this.isoBox(c, 9.2, 8.2, 9.8, 9.0, 0, 9, '#5b4636', '#3f3026', '#4c3a2d');
       const [x, y] = this.iso(9.5, 8.6, 9); c.fillStyle = '#f5c542'; c.fillRect(x - 3, y - 7, 6, 4); c.fillRect(x - 1, y - 3, 2, 2); c.fillRect(x - 2, y - 1, 4, 1); c.fillStyle = '#fff1a8'; c.fillRect(x - 2, y - 7, 2, 2);
     });
-    if (D.has('coffee')) this.dyn(0.5 + 1.6 + 0.3 + 7.4 - 7.4 + 0.1 + 2.0, (c, t) => {
-      this.isoBox(c, 2.85, 0.15, 3.45, 0.75, 0, 9, '#3a3d4f', '#262838', '#2f3244');
-      this.isoBox(c, 2.95, 0.2, 3.35, 0.6, 9, 6, '#c0392b', '#8e2a20', '#a53226');
-      const [x, y] = this.iso(3.15, 0.75, 10);
-      for (let i = 0; i < 3; i++) { const p = (t * 0.6 + i / 3) % 1; c.globalAlpha = 1 - p; c.fillStyle = '#d9d9e8'; c.fillRect(x + Math.round(Math.sin(p * 6 + i) * 1.5), y - 12 - p * 8, 1, 1); }
+    if (D.has('coffee')) this.dyn(9.5 + 5.3, (c, t) => {
+      this.isoBox(c, 9.2, 5.0, 9.8, 5.6, 0, 9, '#3a3d4f', '#262838', '#2f3244');
+      this.isoBox(c, 9.3, 5.1, 9.7, 5.5, 9, 6, '#c0392b', '#8e2a20', '#a53226');
+      const [x, y] = this.iso(9.3, 5.3, 12);
+      c.fillStyle = '#f4f1de'; c.fillRect(x - 1, y + 1, 2, 2);
+      for (let i = 0; i < 3; i++) { const p = (t * 0.6 + i / 3) % 1; c.globalAlpha = 1 - p; c.fillStyle = '#d9d9e8'; c.fillRect(x + Math.round(Math.sin(p * 6 + i) * 1.5), y - 4 - p * 8, 1, 1); }
       c.globalAlpha = 1;
     });
     if (D.has('lamp')) this.dyn(0.02, (c, t) => {
@@ -245,11 +246,12 @@ class FloorScene {
     if (Math.sin(t * 9 + ch.gy) > 0.97) { c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(x - 5, y - 9, 10, 7); }
   }
   drawHolo(c, t) {
-    const [x, y] = this.iso(5.2, 5.2, 9);
     const act = this.holo;
+    const [x, y] = this.iso(5.2, 5.2, act ? 24 : 9);
+    if (act) { c.globalAlpha = 0.18; c.fillStyle = '#5eead4'; const [bx, by] = this.iso(5.2, 5.2, 9); PX.poly(c, [[bx - 2, by], [bx + 2, by], [x + 1, y], [x - 1, y]], '#5eead4'); c.globalAlpha = 1; c.fillStyle = 'rgba(6,20,32,0.82)'; c.fillRect(x - 12, y - 21, 24, 18); c.fillStyle = '#5eead4'; c.fillRect(x - 12, y - 21, 24, 1); c.fillRect(x - 12, y - 4, 24, 1); }
     const a = act ? 0.9 : 0.35;
     c.globalAlpha = a * 0.25; c.fillStyle = '#5eead4';
-    PX.poly(c, [[x - 10, y], [x + 10, y], [x + 6, y - 22], [x - 6, y - 22]], '#5eead4');
+    if (!act) PX.poly(c, [[x - 10, y], [x + 10, y], [x + 6, y - 22], [x - 6, y - 22]], '#5eead4');
     c.globalAlpha = a;
     if (act && act.series) {
       const s = act.series, n = s.length; let mn = Infinity, mx = -Infinity; for (const v of s) { mn = Math.min(mn, v); mx = Math.max(mx, v); }
@@ -305,7 +307,7 @@ class FloorScene {
     for (let i = 0; i < pxLen; i += 2) { const [x, y] = this.iso(b.a + i / 8, 0, 27); c.fillStyle = (i / 2 + Math.floor(t * 4)) % 9 === 0 ? '#22d3ee' : '#0e2a33'; c.fillRect(x, y, 1, 1); }
   }
   // ------------------------------------------------------------ movement API
-  goTo(id, pts) { const c = this.chars.get(id); if (!c || c.locked) return Promise.resolve(); c.path = pts.map(p => [p[0], p[1]]); c.state = 'walk'; return new Promise(r => { c.onArrive = r; }); }
+  goTo(id, pts) { const c = this.chars.get(id); if (!c || c.locked) return Promise.resolve(); if (c.onArrive) { const f = c.onArrive; c.onArrive = null; f(); } c.path = pts.map(p => [p[0], p[1]]); c.state = 'walk'; return new Promise(r => { c.onArrive = r; }); }
   gather(order, spots) {
     const ps = [];
     order.forEach((id, i) => {

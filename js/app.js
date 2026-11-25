@@ -1,6 +1,6 @@
 /* Bullpen app: game state, analysis flow, calls, watchlist, profile. */
 'use strict';
-const BUILD = 'b1';
+const BUILD = 'b2';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -420,6 +420,23 @@ function renderChips() {
   $$('#chips .chipb').forEach(b => b.onclick = async () => { await DATA.loadSearch(); const it = DATA.search.find(x => x.id === b.dataset.s && (['BTC', 'ETH', 'SOL'].includes(b.dataset.s) ? x.kind === 'crypto' : x.kind !== 'crypto')) || DATA.search.find(x => x.id === b.dataset.s); if (it) startAnalysis(it); });
 }
 
+// ---------------------------------------------------------------- idle life on the floor
+let wandering = false;
+async function idleWander() {
+  if (RUN || wandering || document.hidden || !$('#tab-floor').classList.contains('on')) return;
+  const ids = Object.keys(ANALYSTS).filter(id => !['boss', 'you'].includes(id) && unlocked(id)); const id = ids[Math.floor(Math.random() * ids.length)];
+  const c = scene.chars.get(id); if (!c || c.path.length || c.alert) return;
+  const dec = scene.decor; const spots = [[3.0, 8.4, 'STRETCH'], [7.0, 8.0, 'HMM...'], [5.2, 7.2, 'LOOKS GOOD']];
+  if (dec.has('coffee')) spots.push([8.75, 5.3, 'COFFEE!']); if (dec.has('cooler')) spots.push([8.75, 2.4, 'GULP']); if (dec.has('arcade')) spots.push([8.7, 6.4, 'HIGH SCORE']); if (dec.has('aquarium')) spots.push([3.1, 8.9, 'BLUB']);
+  const sp = spots[Math.floor(Math.random() * spots.length)];
+  wandering = true;
+  try {
+    await scene.goTo(id, [c.out, [sp[0], sp[1]]]); if (RUN) return;
+    scene.say(id, sp[2]); await sleep(1800); scene.quiet(id); if (RUN) return;
+    await scene.goTo(id, [c.out, c.seat]); c.state = 'type';
+  } finally { wandering = false; }
+}
+
 // ---------------------------------------------------------------- boot
 async function boot() {
   scene = new FloorScene($('#floor'));
@@ -441,6 +458,7 @@ async function boot() {
   scene.setTicker(tick);
   const t = (location.hash || '').slice(1); if (TABS.includes(t) && t !== 'floor') showTab(t);
   const ask = new URLSearchParams(location.search).get('ask'); if (ask) startAnalysis(ask);
+  setInterval(idleWander, 9000);
   scoreCalls(); pollWatch(); setInterval(pollWatch, 60000); setInterval(scoreCalls, 3600000);
   document.addEventListener('visibilitychange', () => { if (document.hidden) scene.stop(); else if ($('#tab-floor').classList.contains('on')) scene.start(); });
 }
