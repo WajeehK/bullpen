@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b8';
+const BUILD = 'b9';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -47,7 +47,38 @@ const levelOf = xp => { let L = 1; while (xp >= lvlXP(L + 1)) L++; return L; };
 const KEY = 'bullpen.v1'; // kept so existing progress carries over
 const ST = Object.assign({ xp: 0, analyses: 0, seen: {}, calls: [], watch: [], cur: 'GBP', sound: false, decorOff: {}, history: [], lastDay: '', alerted: {}, inbox: [] }, JSON.parse(localStorage.getItem(KEY) || '{}'));
 if (!Array.isArray(ST.inbox)) ST.inbox = []; ST.inbox = ST.inbox.slice(0, 4);
+if (!Array.isArray(ST.calls)) ST.calls = [];
 const save = () => localStorage.setItem(KEY, JSON.stringify(ST));
+function callDupeKey(c) {
+  return c.aid ? c.aid + '|' + c.dir : [c.id, c.dir, Math.round((c.price || 0) * 100), new Date(c.at).toDateString()].join('|');
+}
+function dedupeCalls() {
+  const groups = new Map();
+  for (const c of ST.calls) {
+    const k = callDupeKey(c);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(c);
+  }
+  if ([...groups.values()].every(g => g.length === 1)) return;
+  const used = new Set(), out = [];
+  for (const c of ST.calls) {
+    const k = callDupeKey(c);
+    if (used.has(k)) continue;
+    used.add(k);
+    const g = groups.get(k);
+    const best = g.reduce((a, b) => {
+      const sa = (a.s30 ? 4 : 0) + (a.s7 ? 2 : 0) + (a.snap ? 1 : 0);
+      const sb = (b.s30 ? 4 : 0) + (b.s7 ? 2 : 0) + (b.snap ? 1 : 0);
+      if (sb !== sa) return sb > sa ? b : a;
+      return a.at <= b.at ? a : b;
+    });
+    if (!best.snap) { const x = g.find(y => y.snap); if (x) best.snap = x.snap; }
+    if (!best.aid) { const x = g.find(y => y.aid); if (x) best.aid = x.aid; }
+    out.push(best);
+  }
+  ST.calls = out; save();
+}
+dedupeCalls();
 const level = () => levelOf(ST.xp);
 const unlocked = id => (ANALYSTS[id] ? ANALYSTS[id].lvl || 1 : (UNLOCKS.find(u => u.id === id) || { lvl: 1 }).lvl) <= level();
 
@@ -141,7 +172,7 @@ function renderHeader(ctx) {
   const src = document.createElement('div'); src.className = 'srcline'; src.textContent = srcLine(ctx); rep.append(src);
 }
 function factsHTML(f) { return f && f.length ? `<div class="facts">${f.map(x => `<div><span>${esc(x.k)}</span><b>${esc(x.v)}</b></div>`).join('')}</div>` : ''; }
-function renderCard(sec, ctx, animate) {
+function renderCard(sec, ctx, animate, host) {
   const a = ANALYSTS[sec.by]; const card = document.createElement('section'); card.className = 'card sec' + (animate ? ' pop' : ''); card.style.setProperty('--c', a.color);
   const head = document.createElement('div'); head.className = 'sec-h'; head.append(avatar(sec.by, 36));
   head.insertAdjacentHTML('beforeend', `<div class="sec-t"><b>${esc(a.name)}</b><span>${esc(a.title)}</span></div><span class="chip">${esc(nice(sec.headline || ''))}</span>`);
@@ -172,7 +203,7 @@ function renderCard(sec, ctx, animate) {
   if (sec.signals && sec.signals.length) body.insertAdjacentHTML('beforeend', '<div class="sigs">' + sec.signals.map(g => `<span class="sg ${g.s > 0.15 ? 'up' : g.s < -0.15 ? 'dn' : ''}">${esc(g.name)}: ${esc(g.reading)}</span>`).join('') + '</div>');
   const un = (sec.unavailable || []).filter(Boolean); if (un.length) body.insertAdjacentHTML('beforeend', '<div class="unav">' + un.map(u => `<div>Unavailable: ${esc(u)}</div>`).join('') + '</div>');
   if (sec.src) body.insertAdjacentHTML('beforeend', `<a class="more" href="${esc(sec.src)}" target="_blank" rel="noopener">SEC filings ↗</a>`);
-  $('#report').append(card);
+  (host || $('#report')).append(card);
 }
 function verdictInner(ctx, v, xp, compact) {
   const gauge = `<div class="gauge"><div class="g-bar"><i style="left:${v.score}%"></i></div><div class="g-lab"><span>Bearish</span><span>Neutral</span><span>Bullish</span></div></div>`;
@@ -186,19 +217,189 @@ function verdictInner(ctx, v, xp, compact) {
 function renderVerdictCard(ctx, v, done, xp) {
   const card = document.createElement('section'); card.className = 'card verdict-card pop'; card.style.setProperty('--c', '#fbbf24');
   const head = document.createElement('div'); head.className = 'sec-h'; head.append(avatar('boss', 36)); head.insertAdjacentHTML('beforeend', `<div class="sec-t"><b>Boss</b><span>Verdict on ${esc(ctx.sym)}</span></div><span class="chip">${v.score}/100</span>`);
-  card.append(head); const b = document.createElement('div'); b.className = 'sec-b'; b.innerHTML = verdictInner(ctx, v, null) + callButtons(ctx); card.append(b); $('#report').append(card); wireCallButtons(card, ctx);
+  card.append(head); const b = document.createElement('div'); b.className = 'sec-b'; b.innerHTML = verdictInner(ctx, v, null) + callButtons(ctx); card.append(b); (host || $('#report')).append(card); wireCallButtons(card, ctx);
 }
-function callButtons(ctx) { return `<div class="callrow"><button class="btn bull" data-dir="bull">Make call: Bullish</button><button class="btn bear" data-dir="bear">Make call: Bearish</button></div><button class="btn ghost wbtn" data-watch>Add ${esc(ctx.sym)} to watchlist</button>`; }
+function callLogged(t, dir) {
+  if (t.aid) return ST.calls.some(c => c.aid === t.aid && c.dir === dir);
+  return ST.calls.some(c => c.id === t.id && c.dir === dir && Math.abs((c.price || 0) - (t.price || 0)) < 1e-9 && new Date(c.at).toDateString() === new Date().toDateString());
+}
+function callBtnLabel(ctx, dir) {
+  const t = typeof ctx.item === 'object' ? callTarget(ctx) : ctx;
+  if (callLogged(t, dir)) return `<button class="btn ${dir} logged" data-dir="${dir}" disabled>Call logged</button>`;
+  return `<button class="btn ${dir}" data-dir="${dir}">Make call: ${dir === 'bull' ? 'Bullish' : 'Bearish'}</button>`;
+}
+function callButtons(ctx) {
+  const watched = ST.watch.some(w => w.id === ctx.item.id);
+  return `<div class="callrow">${callBtnLabel(ctx, 'bull')}${callBtnLabel(ctx, 'bear')}</div><button class="btn ghost wbtn" data-watch${watched ? ' disabled' : ''}>${watched ? 'On your watchlist' : 'Add ' + esc(ctx.sym) + ' to watchlist'}</button>`;
+}
+function markLogged(dir) {
+  $$(`[data-dir="${dir}"]`).forEach(b => { b.disabled = true; b.textContent = 'Call logged'; b.classList.add('logged'); });
+}
 function wireCallButtons(root, ctx) {
-  $$('[data-dir]', root).forEach(b => b.onclick = () => { logCall(callTarget(ctx), b.dataset.dir); closeVerdict(); });
-  $$('[data-watch]', root).forEach(b => b.onclick = () => { addWatch({ id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand }); b.textContent = 'On your watchlist'; });
+  $$('[data-dir]', root).forEach(b => b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if (b.disabled) return; logCall(callTarget(ctx), b.dataset.dir); });
+  $$('[data-watch]', root).forEach(b => b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); addWatch({ id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand }); b.textContent = 'On your watchlist'; b.disabled = true; });
 }
+
+function snapOf(ctx, v, done, aid) {
+  const price = ctx.crypto ? ctx.live : (ctx.s && ctx.s.price);
+  return {
+    aid, at: Date.now(),
+    sym: ctx.item.id, name: ctx.name, kind: ctx.item.kind,
+    ondemand: !!ctx.item.ondemand, cur: ctx.cur, price, crypto: !!ctx.crypto,
+    fund: ctx.s && ctx.s.m || null,
+    bars: (ctx.bars || []).slice(-180).map(b => [b[0], b[1], b[2], b[3], b[4], b[5] || 0]),
+    v: { score: v.score, stance: v.stance, conf: v.conf, coverage: v.coverage, bull: v.bull || [], bear: v.bear || [], cats: v.cats || [], lines: v.lines || [], sigs: v.sigs || [] },
+    done: (done || []).map(sec => ({
+      id: sec.id, by: sec.by, headline: sec.headline, lines: sec.lines || [],
+      facts: sec.facts, signals: sec.signals, unavailable: sec.unavailable,
+      catalysts: sec.catalysts,
+      items: sec.items && sec.items.slice(0, 8).map(n => ({ t: n.t, s: n.s, u: n.u, ts: n.ts, tone: n.tone, img: n.img })),
+      rows: sec.rows && sec.rows.slice(0, 8),
+      holders: sec.holders && sec.holders.length ? 1 : undefined,
+      src: sec.src, revQ: sec.revQ, peerTable: sec.peerTable, levels: sec.levels
+    }))
+  };
+}
+function ctxFromSnap(snap) {
+  return {
+    item: { id: snap.sym, kind: snap.kind, ondemand: snap.ondemand },
+    sym: snap.sym, name: snap.name, cur: snap.cur, crypto: !!snap.crypto,
+    bars: snap.bars || [], live: snap.price, s: { price: snap.price, m: snap.fund || {} },
+    aid: snap.aid, snap, score: snap.v && snap.v.score
+  };
+}
+
+let sheetOpen = false, sheetPushed = false, sheetHideT = 0;
+function overlayOff(on) {
+  document.body.classList.toggle('sheet-on', !!on);
+  if (scene && scene.setHud) scene.setHud(!on);
+}
+function fillSheetHead(kind, name, sym) {
+  const hd = $('#sheet .shead'); hd.innerHTML = '';
+  const left = document.createElement('div'); left.className = 'shead-l';
+  left.append(avatar('boss', 40));
+  left.insertAdjacentHTML('beforeend', `<div><div class="vm-k">${kind}</div><div class="vm-t">${esc(name)} <span>${esc(sym)}</span></div></div>`);
+  hd.append(left);
+  hd.insertAdjacentHTML('beforeend', '<button class="stx" type="button" aria-label="Close">✕</button>');
+}
+function callInfoHTML(c, live) {
+  const dl = c.dir === 'bull' ? 'Bullish' : 'Bearish';
+  const r = live != null && c.price ? live / c.price - 1 : null;
+  const signed = r == null ? null : (c.dir === 'bull' ? r : -r);
+  const d7 = Math.max(0, Math.ceil((c.at + 7 * 864e5 - Date.now()) / 864e5));
+  const d30 = Math.max(0, Math.ceil((c.at + 30 * 864e5 - Date.now()) / 864e5));
+  const st7 = c.s7 ? `7d ${c.s7.ok ? 'right' : 'wrong'} ${W.pct(c.s7.ret)}` : (Date.now() < c.at + 7 * 864e5 ? `7d scores in ${d7} day${d7 === 1 ? '' : 's'}` : '7d waiting for a close');
+  const st30 = c.s30 ? `30d ${c.s30.ok ? 'right' : 'wrong'} ${W.pct(c.s30.ret)}` : (Date.now() < c.at + 30 * 864e5 ? `30d scores in ${d30} day${d30 === 1 ? '' : 's'}` : '30d waiting for a close');
+  return `<section class="card call-meta"><div class="sec-b">
+    <div class="cm-row"><span>Direction</span><b class="dir ${c.dir}">${dl}</b></div>
+    <div class="cm-row"><span>Entry</span><b>${esc(fmtMoney(c.price, c.cur))}</b></div>
+    <div class="cm-row"><span>Logged</span><b>${esc(W.dshort(c.at))}</b></div>
+    <div class="cm-row"><span>Live since</span>${r != null ? `<b class="${signed >= 0 ? 'up' : 'dn'}" data-livepct>${W.pct(r)}</b>` : '<b class="muted" data-livepct>—</b>'}</div>
+    <div class="cm-row"><span>Scoring</span><b>${esc(st7)} · ${esc(st30)}</b></div>
+  </div></section>`;
+}
+function pxToCallCur(px, from, cur) {
+  if (px == null || !isFinite(px)) return null;
+  if (!from || !cur || from === cur) return px;
+  const fx = DATA.fx(); if (!fx) return null;
+  if (from === 'USD' && cur === 'GBP') return px / fx;
+  if (from === 'GBP' && cur === 'USD') return px * fx;
+  return px;
+}
+async function livePrice(c) {
+  try {
+    if (c.kind === 'crypto') {
+      const x = await DATA.coin(c.id);
+      const px = x && (x.price != null ? x.price : x.bars && x.bars.length ? x.bars[x.bars.length - 1][4] : null);
+      return pxToCallCur(px, 'USD', c.cur || 'USD');
+    }
+    await DATA.loadQuotes();
+    const q = DATA.quotes && DATA.quotes.q && DATA.quotes.q[c.id];
+    if (q && q[0] != null) return q[0];
+    const s = c.ondemand ? await DATA.stockOnDemand(c.id) : await DATA.stock(c.id);
+    const px = s && (s.price != null ? s.price : s.d && s.d.length ? s.d[s.d.length - 1][4] : null);
+    return pxToCallCur(px, (s && s.cur) || c.cur, c.cur);
+  } catch (e) { return null; }
+}
+function fillSheet(snap, opts) {
+  const el = $('#sheet');
+  const name = (opts.call && (opts.call.name || opts.call.id)) || (snap && snap.name) || '';
+  const sym = (opts.call && opts.call.id) || (snap && snap.sym) || '';
+  fillSheetHead(opts.mode === 'call' ? 'Call' : 'Verdict', name, sym);
+  const body = $('.sbody', el); body.innerHTML = '';
+  if (snap && snap.v) {
+    const ctx = ctxFromSnap(snap);
+    const vcard = document.createElement('section'); vcard.className = 'card verdict-card'; vcard.style.setProperty('--c', '#fbbf24');
+    const head = document.createElement('div'); head.className = 'sec-h'; head.append(avatar('boss', 36));
+    head.insertAdjacentHTML('beforeend', `<div class="sec-t"><b>Boss</b><span>Verdict on ${esc(snap.sym)}</span></div><span class="chip">${snap.v.score}/100</span>`);
+    vcard.append(head);
+    const vb = document.createElement('div'); vb.className = 'sec-b'; vb.innerHTML = verdictInner(ctx, snap.v, opts.xp || null); vcard.append(vb);
+    body.append(vcard);
+    (snap.done || []).forEach(sec => renderCard(sec, ctx, false, body));
+    if (!opts.call) { body.insertAdjacentHTML('beforeend', callButtons(ctx)); wireCallButtons(body, ctx); }
+  } else {
+    body.insertAdjacentHTML('beforeend', '<p class="muted pad">The full analysis for this call wasn\'t saved. New calls keep a snapshot so you can open them offline.</p>');
+  }
+  if (opts.call) {
+    body.insertAdjacentHTML('beforeend', callInfoHTML(opts.call, null));
+    livePrice(opts.call).then(px => {
+      const n = $('[data-livepct]', el); if (!n || px == null || !opts.call.price) return;
+      const r = px / opts.call.price - 1, signed = opts.call.dir === 'bull' ? r : -r;
+      n.textContent = W.pct(r); n.className = signed >= 0 ? 'up' : 'dn';
+    });
+  }
+}
+function openSheetEl() {
+  const el = $('#sheet'), scrim = $('#scrim');
+  el.scrollTop = 0; el.style.transform = '';
+  el.hidden = false; scrim.hidden = false;
+  overlayOff(true);
+  requestAnimationFrame(() => { el.classList.add('open'); scrim.classList.add('on'); });
+  if (!sheetOpen) { sheetPushed = true; history.pushState({ brSheet: 1 }, '', location.href); }
+  sheetOpen = true;
+  clearTimeout(sheetHideT);
+}
+function hideSheet() {
+  const el = $('#sheet'), scrim = $('#scrim');
+  el.classList.remove('open', 'dragging'); el.style.transform = '';
+  scrim.classList.remove('on');
+  overlayOff(false);
+  sheetOpen = false;
+  sheetHideT = setTimeout(() => { if (!sheetOpen) { el.hidden = true; scrim.hidden = true; } }, 400);
+}
+function closeSheet() {
+  if (sheetPushed && history.state && history.state.brSheet) { sheetPushed = false; history.back(); }
+  else hideSheet();
+}
+function closeVerdict() { closeSheet(); }
 function openVerdict(ctx, v, xp) {
-  const m = $('#verdict'); $('.vm-body', m).innerHTML = `<div class="vm-head"></div>` + verdictInner(ctx, v, xp) + callButtons(ctx);
-  const hd = $('.vm-head', m); hd.append(avatar('boss', 48)); hd.insertAdjacentHTML('beforeend', `<div><div class="vm-k">Verdict</div><div class="vm-t">${esc(ctx.name)} <span>${esc(ctx.sym)}</span></div></div>`);
-  wireCallButtons(m, ctx); m.hidden = false; requestAnimationFrame(() => m.classList.add('on'));
+  const last = LAST && LAST.sym === ctx.item.id ? LAST : null;
+  const snap = (last && last.snap) || snapOf(ctx, v, last && last.done || [], last && last.aid);
+  fillSheet(snap, { mode: 'verdict', xp });
+  openSheetEl();
 }
-function closeVerdict() { const m = $('#verdict'); m.classList.remove('on'); setTimeout(() => m.hidden = true, 250); }
+function openCallSheet(c) {
+  const snap = c.snap || (LAST && LAST.sym === c.id && LAST.snap) || null;
+  fillSheet(snap, { mode: 'call', call: c });
+  openSheetEl();
+}
+function wireSheet() {
+  const el = $('#sheet'), scrim = $('#scrim');
+  const zones = el.querySelectorAll('.grab, .shead, .stop');
+  let d = null;
+  const down = e => { if (e.button > 0 || e.target.closest('button:not(.grab), a, input')) return; d = { y: e.clientY, t: performance.now(), dy: 0 }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) { } el.classList.add('dragging'); };
+  const move = e => { if (!d) return; d.dy = Math.max(0, e.clientY - d.y); el.style.transform = `translate3d(0,${d.dy}px,0)`; };
+  const end = e => { if (!d) return; const { dy, t } = d; const tap = dy < 6 && performance.now() - t < 500; const onGrab = e.currentTarget.classList.contains('grab') || e.target.closest && e.target.closest('.grab'); d = null; el.classList.remove('dragging'); el.style.transform = ''; if (e.type !== 'pointercancel' && (dy > 70 || (tap && onGrab))) closeSheet(); };
+  zones.forEach(z => { z.addEventListener('pointerdown', down); z.addEventListener('pointermove', move); z.addEventListener('pointerup', end); z.addEventListener('pointercancel', end); });
+  let y0 = null, dy = 0;
+  el.addEventListener('touchstart', e => { y0 = el.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+  el.addEventListener('touchmove', e => { if (y0 == null) return; dy = e.touches[0].clientY - y0; if (dy > 0 && el.scrollTop <= 0) { el.classList.add('dragging'); el.style.transform = `translate3d(0,${dy * .9}px,0)`; } }, { passive: true });
+  el.addEventListener('touchend', () => { if (y0 == null) return; el.classList.remove('dragging'); el.style.transform = ''; if (dy > 110) closeSheet(); y0 = null; });
+  el.addEventListener('click', e => { if (e.target.closest('.stx')) closeSheet(); });
+  scrim.addEventListener('click', () => closeSheet());
+  addEventListener('keydown', e => { if (e.key === 'Escape' && sheetOpen) closeSheet(); });
+  addEventListener('popstate', () => { if (sheetOpen) { sheetPushed = false; hideSheet(); } });
+}
 
 
 // ---------------------------------------------------------------- analysis flow
@@ -291,7 +492,7 @@ async function startAnalysis(item) {
   const pts = awardPoints(item, v);
   renderVerdictCard(ctx, v, done, pts);
   ST.history.unshift({ id: item.id, name: item.name, kind: item.kind, score: v.score, stance: v.stance, at: Date.now() }); ST.history = ST.history.slice(0, 30);
-  LAST = { ctx, v, pts, sym: item.id, done };
+  const aid = item.id + '|' + Date.now(); LAST = { ctx, v, pts, sym: item.id, done, aid, snap: snapOf(ctx, v, done, aid) };
   postAnalysisPrompts(ctx, v, done);
   openVerdict(ctx, v, pts);
   hideDialog();
@@ -386,7 +587,7 @@ function renderInbox() {
   });
 }
 function dropInbox(x) { ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); }
-function openReport(x) { if (LAST && LAST.sym === x.sym) { if (isLand()) document.body.classList.add('rep-open'); else openVerdict(LAST.ctx, LAST.v, null); return true; } return false; }
+function openReport(x) { if (LAST && LAST.sym === x.sym) { openVerdict(LAST.ctx, LAST.v, null); return true; } return false; }
 function toWatch(x, msg) {
   const it = { id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand };
   const had = ST.watch.find(w => w.id === it.id);
@@ -399,25 +600,42 @@ function inboxAct(x, act, el) {
   if (act === 'approve') {
     if (x.type === 'prompt') {
       dropInbox(x);
-      if (x.action === 'call') logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, x.dir || leanOf(x) || 'bull');
+      if (x.action === 'call') logCall(callFromInbox(x), x.dir || leanOf(x) || 'bull');
       else if (x.action === 'watch' || x.action === 'alert' || x.action === 'remind') { toWatch(x, x.action === 'alert' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. I\'ll flag a move over 5%.' : x.action === 'remind' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. Ask again around earnings.' : null); }
       return;
     }
-    if (x.type === 'analysis') { const d = leanOf(x); dropInbox(x); if (d) logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, d); else toWatch(x); return; }
+    if (x.type === 'analysis') { const d = leanOf(x); dropInbox(x); if (d) logCall(callFromInbox(x), d); else toWatch(x); return; }
     dropInbox(x); startAnalysis(itemOf(x)); return;
   }
   if (act === 'reply') {
     if (x.type === 'prompt' || x.type === 'analysis') { if (!openReport(x)) { dropInbox(x); startAnalysis(itemOf(x)); } return; }
     if (x.type === 'call' || x.type === 'due') { showTab('calls'); return; }
     const row = $('.wi-a', el); row.innerHTML = '<button class="btn bull" data-d="bull">Bullish call</button><button class="btn bear" data-d="bear">Bearish call</button><button class="btn sk" data-d="x">Cancel</button>';
-    $$('[data-d]', row).forEach(b => b.onclick = () => { if (b.dataset.d === 'x') { renderInbox(); return; } logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, b.dataset.d); dropInbox(x); });
+    $$('[data-d]', row).forEach(b => b.onclick = ev => { ev.stopPropagation(); if (b.dataset.d === 'x') { renderInbox(); return; } logCall(callFromInbox(x), b.dataset.d); dropInbox(x); });
   }
 }
-function callTarget(ctx) { return { id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price: ctx.crypto ? ctx.live : ctx.s.price, cur: ctx.cur, score: LAST && LAST.sym === ctx.item.id ? LAST.v.score : null }; }
+function lastFor(id) { return LAST && LAST.sym === id ? LAST : null; }
+function callTarget(ctx) {
+  const last = lastFor(ctx.item.id);
+  return { id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price: ctx.crypto ? ctx.live : (ctx.s && ctx.s.price), cur: ctx.cur, score: last ? last.v.score : (ctx.score != null ? ctx.score : null), aid: ctx.aid || (last && last.aid), snap: ctx.snap || (last && last.snap) || null };
+}
+function callFromInbox(x) {
+  const last = lastFor(x.sym);
+  return { id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score, aid: x.aid || (last && last.aid), snap: last && last.snap || null };
+}
 function logCall(t, dir) {
-  if (!t.price) { toast('No live price to log this call against.'); return; }
-  ST.calls.unshift({ id: t.id, kind: t.kind, name: t.name, dir, price: t.price, cur: t.cur, at: Date.now(), score: t.score ?? null, ondemand: !!t.ondemand });
-  save(); addPoints(15); toast(`${dir === 'bull' ? 'Bullish' : 'Bearish'} call logged on <b>${esc(t.id)}</b> at ${esc(fmtMoney(t.price, t.cur))}. Scored at 7 and 30 days against real closes.`); SFX.play('blip'); renderCalls();
+  if (!t.price) { toast('No live price to log this call against.'); return false; }
+  const last = lastFor(t.id);
+  if (!t.aid && last) t.aid = last.aid;
+  if (!t.snap && last) t.snap = last.snap;
+  if (callLogged(t, dir)) { markLogged(dir); toast('Call already logged'); return false; }
+  const aid = t.aid || (t.id + '|' + Date.now());
+  ST.calls.unshift({ id: t.id, kind: t.kind, name: t.name, dir, price: t.price, cur: t.cur, at: Date.now(), score: t.score ?? (last && last.v.score) ?? null, ondemand: !!t.ondemand, aid, snap: t.snap || null });
+  const n = ST.inbox.length;
+  ST.inbox = ST.inbox.filter(x => !(x.sym === t.id && x.action === 'call' && (x.dir || leanOf(x)) === dir));
+  save(); addPoints(15); toast(`${dir === 'bull' ? 'Bullish' : 'Bearish'} call logged on <b>${esc(t.id)}</b> at ${esc(fmtMoney(t.price, t.cur))}. Scored at 7 and 30 days against real closes.`); SFX.play('blip');
+  markLogged(dir); renderCalls(); if (ST.inbox.length !== n) renderInbox();
+  return true;
 }
 async function histFor(c) { if (c.kind === 'crypto') { const x = await DATA.coin(c.id); return x.bars; } const s = c.ondemand ? await DATA.stockOnDemand(c.id) : await DATA.stock(c.id); return s.d; }
 async function scoreCalls() {
@@ -445,10 +663,16 @@ async function renderCalls() {
   await DATA.loadQuotes();
   const live = c => { if (c.kind === 'crypto') return null; const q = DATA.quotes.q[c.id]; return q ? q[0] : null; };
   const open = ST.calls.filter(c => !c.s30); const dl = d => d === 'bull' ? 'Bullish' : 'Bearish';
+  const key = c => `data-at="${c.at}" data-id="${esc(c.id)}" data-dir="${c.dir}" role="button" tabindex="0"`;
   host.innerHTML = `<div class="stats3"><div><b>${acc(sc7.map(c => c.s7))}</b><span>7-day accuracy<br>${sc7.length} scored</span></div><div><b>${acc(sc30.map(c => c.s30))}</b><span>30-day accuracy<br>${sc30.length} scored</span></div><div><b>${ST.calls.length}</b><span>calls made</span></div></div>
-  <h3 class="h3">Best calls</h3>${best.length ? '<div class="lb">' + best.map((x, i) => `<div class="lbr"><span class="rk">${i + 1}</span><b>${esc(x.c.id)}</b><span class="dir ${x.c.dir}">${dl(x.c.dir)}</span><span class="muted">${x.h}d · ${W.dshort(x.c.at)}</span><b class="${x.r >= 0 ? 'up' : 'dn'}">${W.pct(x.r)}</b></div>`).join('') + '</div>' : '<p class="muted pad">Your leaderboard fills up once calls reach 7 days. Make a call from any verdict.</p>'}
-  <h3 class="h3">Open calls</h3>${open.length ? open.map(c => { const lp = live(c); const r = lp ? lp / c.price - 1 : null; const d7 = Math.max(0, Math.ceil((c.at + 7 * 864e5 - Date.now()) / 864e5)), d30 = Math.max(0, Math.ceil((c.at + 30 * 864e5 - Date.now()) / 864e5)); return `<div class="callc"><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">at ${esc(fmtMoney(c.price, c.cur))} · ${W.dshort(c.at)}${c.score != null ? ' · verdict ' + c.score : ''}</div></div><div class="cc-r">${r != null ? `<b class="${(c.dir === 'bull' ? r : -r) >= 0 ? 'up' : 'dn'}">${W.pct(r)}</b>` : ''}<div class="muted">${c.s7 ? `7d ${c.s7.ok ? 'right' : 'wrong'} ${W.pct(c.s7.ret)}` : `7d in ${d7}d`} · 30d in ${d30}d</div></div></div>`; }).join('') : '<p class="muted pad">No open calls.</p>'}
-  ${sc30.length ? '<h3 class="h3">Settled</h3>' + sc30.map(c => `<div class="callc"><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">${W.dshort(c.at)} at ${esc(fmtMoney(c.price, c.cur))}</div></div><div class="cc-r">7d ${c.s7 && c.s7.ok ? 'right' : 'wrong'} · 30d ${c.s30.ok ? 'right' : 'wrong'} <b class="${c.s30.dret >= 0 ? 'up' : 'dn'}">${W.pct(c.s30.ret)}</b></div></div>`).join('') : ''}`;
+  <h3 class="h3">Best calls</h3>${best.length ? '<div class="lb">' + best.map((x, i) => `<div class="lbr" ${key(x.c)}><span class="rk">${i + 1}</span><b>${esc(x.c.id)}</b><span class="dir ${x.c.dir}">${dl(x.c.dir)}</span><span class="muted">${x.h}d · ${W.dshort(x.c.at)}</span><b class="${x.r >= 0 ? 'up' : 'dn'}">${W.pct(x.r)}</b></div>`).join('') + '</div>' : '<p class="muted pad">Your leaderboard fills up once calls reach 7 days. Make a call from any verdict.</p>'}
+  <h3 class="h3">Open calls</h3>${open.length ? open.map(c => { const lp = live(c); const r = lp ? lp / c.price - 1 : null; const d7 = Math.max(0, Math.ceil((c.at + 7 * 864e5 - Date.now()) / 864e5)), d30 = Math.max(0, Math.ceil((c.at + 30 * 864e5 - Date.now()) / 864e5)); return `<div class="callc" ${key(c)}><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">at ${esc(fmtMoney(c.price, c.cur))} · ${W.dshort(c.at)}${c.score != null ? ' · verdict ' + c.score : ''}</div></div><div class="cc-r">${r != null ? `<b class="${(c.dir === 'bull' ? r : -r) >= 0 ? 'up' : 'dn'}">${W.pct(r)}</b>` : ''}<div class="muted">${c.s7 ? `7d ${c.s7.ok ? 'right' : 'wrong'} ${W.pct(c.s7.ret)}` : `7d in ${d7}d`} · 30d in ${d30}d</div></div></div>`; }).join('') : '<p class="muted pad">No open calls.</p>'}
+  ${sc30.length ? '<h3 class="h3">Settled</h3>' + sc30.map(c => `<div class="callc" ${key(c)}><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">${W.dshort(c.at)} at ${esc(fmtMoney(c.price, c.cur))}</div></div><div class="cc-r">7d ${c.s7 && c.s7.ok ? 'right' : 'wrong'} · 30d ${c.s30.ok ? 'right' : 'wrong'} <b class="${c.s30.dret >= 0 ? 'up' : 'dn'}">${W.pct(c.s30.ret)}</b></div></div>`).join('') : ''}`;
+  const openCall = el => {
+    const c = ST.calls.find(x => String(x.at) === el.dataset.at && x.id === el.dataset.id && x.dir === el.dataset.dir);
+    if (c) openCallSheet(c);
+  };
+  $$('#calls .callc, #calls .lbr').forEach(el => { el.onclick = () => openCall(el); el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCall(el); } }; });
 }
 
 // ---------------------------------------------------------------- watchlist
@@ -523,6 +747,7 @@ function setCur(c) { ST.cur = c; save(); updateStatus(); renderWatch(); renderCa
 // ---------------------------------------------------------------- tabs
 const TABS = ['floor', 'calls', 'watch', 'profile'];
 function showTab(t) {
+  if (sheetOpen) { hideSheet(); sheetPushed = false; }
   TABS.forEach(x => { $('#tab-' + x).classList.toggle('on', x === t); });
   TabBar.set(TABS.indexOf(t));
   if (t === 'floor') { scene.start(); requestAnimationFrame(() => applyLayout()); } else scene.stop();
@@ -544,7 +769,7 @@ function rsiOf(done) { const ch = (done || []).find(s => s.id === 'chartist'); c
 function sma50Of(done) { const ch = (done || []).find(s => s.id === 'chartist'); const f = ch && (ch.facts || []).find(x => x.k === '50-day'); return f && f.v && f.v !== 'n/a' ? f.v : null; }
 function promptBase(ctx, v) {
   const price = ctx.crypto ? ctx.live : ctx.s && ctx.s.price;
-  return { type: 'prompt', sym: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price, cur: ctx.cur, score: v && v.score, stance: v && v.stance };
+  return { type: 'prompt', sym: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price, cur: ctx.cur, score: v && v.score, stance: v && v.stance, aid: LAST && LAST.sym === ctx.item.id ? LAST.aid : undefined };
 }
 function promptCandidates(ctx, v, done) {
   if (!ctx || !ctx.item) return [];
@@ -642,7 +867,7 @@ async function boot() {
   document.addEventListener('click', e => { if (!e.target.closest('#ask')) $('#ac').hidden = true; });
   $('#dialog').onclick = dlgTap; $('#skipBtn').onclick = e => { e.stopPropagation(); if (RUN) { RUN.skip = true; dlgResolve && dlgResolve(); } };
   $('#repClose').onclick = () => document.body.classList.remove('rep-open');
-  $('#verdict').onclick = e => { if (e.target.id === 'verdict' || e.target.closest('.vm-x')) closeVerdict(); };
+  wireSheet();
   renderProgress(); renderInbox(); renderChips(); setInterval(updateStatus, 700);
   const q = await DATA.loadQuotes();
   DATA.loadSearch().catch(() => { }); DATA.loadLogos();

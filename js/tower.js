@@ -21,7 +21,7 @@ class Tower {
     this.root = root; this.bots = new Map(); this.unl = new Set(); this.locks = {}; this.ticker = []; this.holo = null; this.curF = 6;
     this.reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.ins = { l: 0, r: 0, t: 0, b: 0 }; this.zoom = 1; this.u = 0; this.v = 0; this.vel = { u: 0, v: 0 }; this.anim = null; this.followId = null;
-    this.running = false; this.visible = true; this.t = 0; this.last = 0; this.lastDraw = 0; this.dirty = true; this.ptrs = new Map();
+    this.running = false; this.visible = true; this.hudOff = false; this.t = 0; this.last = 0; this.lastDraw = 0; this.dirty = true; this.ptrs = new Map();
     this.root.classList.add('t3');
     this.wrap = document.createElement('div'); this.wrap.className = 't3-ovl'; root.appendChild(this.wrap);
     try {
@@ -40,7 +40,7 @@ class Tower {
     this.lights(); this.textures(); this.world(); this.lift();
     if (this.r) this.input();
     new ResizeObserver(() => this.resize()).observe(root);
-    new IntersectionObserver(es => { this.visible = es[0].isIntersecting; if (this.visible) this.kick(); }, { threshold: 0 }).observe(root);
+    new IntersectionObserver(es => { this.visible = es[0].isIntersecting; this.syncOvl(); if (this.visible) this.kick(); }, { threshold: 0 }).observe(root);
     this.resize(); this.home(true);
     this._loop = ts => this.loop(ts);
   }
@@ -535,21 +535,36 @@ class Tower {
     if (!act && !this.dirty && ts - this.lastDraw < 66) return;
     this.lastDraw = ts; this.dirty = false; this.draw();
   }
+  syncOvl() {
+    if (this.wrap) this.wrap.style.visibility = (this.visible && !this.hudOff) ? '' : 'hidden';
+  }
+  setHud(on) { this.hudOff = !on; this.syncOvl(); this.dirty = true; }
+  coverRects() {
+    const wr = this.root.getBoundingClientRect(), out = [];
+    const add = (el, ok) => { if (!el || el.hidden || (ok === false)) return; const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return; const r = el.getBoundingClientRect(); if (r.width < 4 || r.height < 4) return; if (r.right < wr.left || r.left > wr.right || r.bottom < wr.top || r.top > wr.bottom) return; out.push({ l: r.left - wr.left, t: r.top - wr.top, r: r.right - wr.left, b: r.bottom - wr.top }); };
+    add(document.getElementById('dialog'), true);
+    const sh = document.getElementById('sheet'); add(sh, sh && sh.classList.contains('open'));
+    const rep = document.getElementById('report'); add(rep, document.body.classList.contains('rep-open'));
+    return out;
+  }
   draw() {
     this.applyCam(); this.r.render(this.scene, this.cam);
-    const W = this.w, H = this.h;
+    this.syncOvl();
+    if (this.hudOff || !this.visible) return;
+    const W = this.w, H = this.h, covers = this.coverRects();
+    const hits = (s) => { const l = s.x - 72, r = s.x + 72, t = s.y - 72, b = s.y + 40; return covers.some(c => l < c.r && r > c.l && t < c.b && b > c.t); };
     for (const b of this.bots.values()) {
       const show = !b.hidden && !this.occluded(b);
       if (!show) { if (b._vis !== false) { b.el.style.display = 'none'; b._vis = false; } continue; }
       const p = b.g.position, s = this.screenOf(p.x, p.y + (b.inner.position.y + TW.BOT_H) * TW.BOT_S + 0.06, p.z);
-      const on = s.x > -60 && s.x < W + 60 && s.y > -40 && s.y < H + 80;
+      const on = s.x > -60 && s.x < W + 60 && s.y > -40 && s.y < H + 80 && !hits(s);
       if (!on) { if (b._vis !== false) { b.el.style.display = 'none'; b._vis = false; } continue; }
       if (b._vis !== true) { b.el.style.display = ''; b._vis = true; }
       const tf = `translate3d(${s.x.toFixed(1)}px,${s.y.toFixed(1)}px,0)`; if (tf !== b._tf) { b.el.style.transform = tf; b._tf = tf; }
       const st = b.needs ? 'wt' : b.state === 'sofa' ? 'br' : 'wk'; if (st !== b._st) { b.dot.className = st; b._st = st; }
-      const zi = String(b.talking || b.needs ? 9000 + (s.y | 0) : 1000 + (s.y | 0)); if (zi !== b._zi) { b.el.style.zIndex = zi; b._zi = zi; }
+      const zi = String((b.talking || b.needs ? 200 : 100) + (s.y | 0)); if (zi !== b._zi) { b.el.style.zIndex = zi; b._zi = zi; }
     }
-    for (const e of this._lockEls || []) { const sp = e._s, s = this.screenOf(sp.x, sp.f * TW.FH + 1.0, sp.z); e.style.transform = `translate3d(${s.x.toFixed(1)}px,${s.y.toFixed(1)}px,0) translate(-50%,-50%)`; e.style.display = s.x > -80 && s.x < W + 80 && s.y > -20 && s.y < H + 20 ? '' : 'none'; }
+    for (const e of this._lockEls || []) { const sp = e._s, s = this.screenOf(sp.x, sp.f * TW.FH + 1.0, sp.z); e.style.transform = `translate3d(${s.x.toFixed(1)}px,${s.y.toFixed(1)}px,0) translate(-50%,-50%)`; e.style.display = (!hits(s) && s.x > -80 && s.x < W + 80 && s.y > -20 && s.y < H + 20) ? '' : 'none'; }
   }
   stats() {
     let moving = 0, working = 0, idle = 0;

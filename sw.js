@@ -1,6 +1,6 @@
 /* Blackrock service worker: versioned shell cache, network-first data. */
-const V = 'blackrock-b8'; // b8-land: zoom out, unoverlap search, rail on the right
-const SHELL = ['./', 'index.html', 'css/style.css?v=b8', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b8', 'js/tower.js?v=b8', 'js/analysis.js?v=b8', 'js/data.js?v=b8', 'js/chart.js?v=b8', 'js/tabbar.js?v=b8', 'js/app.js?v=b8', 'manifest-b7.webmanifest', 'manifest.webmanifest', 'icons/br-icon-192.png', 'icons/br-icon-512.png'];
+const V = 'blackrock-b9'; // b9: dedupe calls, hide overlays under sheets, call detail sheet
+const SHELL = ['./', 'index.html', 'css/style.css?v=b9', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b9', 'js/tower.js?v=b9', 'js/analysis.js?v=b9', 'js/data.js?v=b9', 'js/chart.js?v=b9', 'js/tabbar.js?v=b9', 'js/app.js?v=b9', 'manifest-b7.webmanifest', 'manifest.webmanifest', 'icons/br-icon-192.png', 'icons/br-icon-512.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {
