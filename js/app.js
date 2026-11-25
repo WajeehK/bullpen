@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b7';
+const BUILD = 'b8';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -643,7 +643,6 @@ async function boot() {
   $('#dialog').onclick = dlgTap; $('#skipBtn').onclick = e => { e.stopPropagation(); if (RUN) { RUN.skip = true; dlgResolve && dlgResolve(); } };
   $('#repClose').onclick = () => document.body.classList.remove('rep-open');
   $('#verdict').onclick = e => { if (e.target.id === 'verdict' || e.target.closest('.vm-x')) closeVerdict(); };
-  $$('.top .cur-t button').forEach(b => b.onclick = () => setCur(b.dataset.c));
   renderProgress(); renderInbox(); renderChips(); setInterval(updateStatus, 700);
   const q = await DATA.loadQuotes();
   DATA.loadSearch().catch(() => { }); DATA.loadLogos();

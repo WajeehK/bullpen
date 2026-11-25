@@ -8,14 +8,10 @@ background:radial-gradient(60% 40% at 0% 0%,rgba(196,181,253,.14),transparent 70
 button{font:inherit;color:inherit;cursor:pointer}
 a{color:#c4b5fd}
 .glass{background:linear-gradient(180deg,rgba(28,30,42,.82),rgba(18,20,30,.78));box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.08),0 10px 26px rgba(0,0,0,.35)}
-.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-t) + 10px) 16px 10px;background:rgba(12,13,18,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px}
-.brand img{width:34px;height:34px;border-radius:10px;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.brand b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.1}.brand small{display:block;font-size:11.5px;color:var(--mut);font-weight:500}
 .seg{display:inline-flex;background:rgba(255,255,255,.06);border-radius:12px;padding:3px;gap:2px;box-shadow:inset 0 0 0 1px var(--line)}
 .seg button{border:0;background:none;padding:5px 10px;border-radius:9px;font-weight:600;font-size:12.5px;color:var(--mut);transition:background .2s,color .2s}
 .seg button.on{background:rgba(255,255,255,.14);color:var(--tx)}
-main{max-width:720px;margin:0 auto;padding:12px 12px 0}
+main{max-width:720px;margin:0 auto;padding:calc(12px + var(--safe-t)) 12px 0}
 .tab{display:none}.tab.on{display:block;animation:fadeup .3s ease}
 @keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .tbar{display:flex;flex-direction:column;gap:10px}
@@ -234,7 +230,6 @@ box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 1px rgba(255,255,255,.
   html,body{overflow:hidden;width:100%;height:100%;height:100dvh;min-height:100dvh;background:var(--stage)}
   body{padding:0;min-height:0}
   body::before{display:none}
-  .top{display:none}
   main{max-width:none;padding:0}
   .tab:not(#tab-floor){position:fixed;inset:0;inset:var(--safe-t) var(--safe-r) var(--safe-b) calc(72px + var(--safe-l));overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 20px 30px;max-width:760px}
   .tab.on{animation:none}
