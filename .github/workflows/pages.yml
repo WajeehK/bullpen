@@ -1,0 +1,51 @@
+name: build-and-deploy
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '11,41 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy_retry.outputs.page_url || steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build data from public sources (rules only, no AI, nothing invented)
+        run: python3 pipeline/build.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      # deploy-pages sometimes misses a just-uploaded artifact or the Pages backend says
+      # "Deployment failed, try again later". Retry the deploy only, never re-upload.
+      - name: Wait for the Pages artifact to be visible
+        run: sleep 20
+      - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wait before retrying a failed Pages deploy
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 90
+      - id: deploy_retry
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - name: Keep the schedule enabled
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/pages.yml/enable" || true
