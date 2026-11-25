@@ -27,10 +27,12 @@ class Tower {
     try {
       this.r = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
       this.r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      this.r.setClearColor(0x17181d, 1);
+      this.r.setClearColor(0x000000, 1);
       root.insertBefore(this.r.domElement, this.wrap); this.r.domElement.className = 't3-cv';
     } catch (e) { this.r = null; const m = document.createElement('div'); m.className = 't3-nogl'; m.textContent = 'The 3D tower needs WebGL, which this browser has turned off.'; root.appendChild(m); }
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x000000);
+    this.scene.fog = new THREE.Fog(0x000000, 80, 220);
     this.cam = new THREE.OrthographicCamera(-10, 10, 5, -5, 1, 400);
     this.dir = new THREE.Vector3(Math.sin(TW.AZ) * Math.cos(TW.EL), Math.sin(TW.EL), Math.cos(TW.AZ) * Math.cos(TW.EL));
     this.cam.position.copy(this.dir).multiplyScalar(100); this.cam.lookAt(0, 0, 0); this.cam.updateMatrixWorld();
@@ -583,6 +585,15 @@ class Tower {
     if (this.running && this.r && this.visible) this.draw();
   }
   setLayout() { this.resize(true); }
+  setTheme(id) {
+    const css = getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#000000';
+    const c = new THREE.Color(css);
+    this.scene.background = c;
+    if (this.scene.fog) this.scene.fog.color.copy(c);
+    else this.scene.fog = new THREE.Fog(c.clone(), 80, 220);
+    if (this.r) this.r.setClearColor(c, 1);
+    this.dirty = true; this.kick();
+  }
   start() { if (this.running) return; this.running = true; this.kick(); }
   stop() { this.running = false; if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; }
 }

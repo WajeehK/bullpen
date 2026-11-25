@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b9';
+const BUILD = 'b10';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -48,6 +48,18 @@ const KEY = 'bullpen.v1'; // kept so existing progress carries over
 const ST = Object.assign({ xp: 0, analyses: 0, seen: {}, calls: [], watch: [], cur: 'GBP', sound: false, decorOff: {}, history: [], lastDay: '', alerted: {}, inbox: [] }, JSON.parse(localStorage.getItem(KEY) || '{}'));
 if (!Array.isArray(ST.inbox)) ST.inbox = []; ST.inbox = ST.inbox.slice(0, 4);
 if (!Array.isArray(ST.calls)) ST.calls = [];
+if (!ST.theme) ST.theme = 'black';
+const THEMES = { black: 'Black', graphite: 'Graphite', midnight: 'Midnight blue', light: 'Light' };
+function applyTheme(id, persist) {
+  const t = THEMES[id] ? id : 'black';
+  ST.theme = t;
+  document.documentElement.dataset.theme = t;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const stage = (getComputedStyle(document.documentElement).getPropertyValue('--stage') || '#000000').trim();
+  if (meta) meta.setAttribute('content', stage);
+  if (scene && scene.setTheme) scene.setTheme(t);
+  if (persist !== false) save();
+}
 const save = () => localStorage.setItem(KEY, JSON.stringify(ST));
 function callDupeKey(c) {
   return c.aid ? c.aid + '|' + c.dir : [c.id, c.dir, Math.round((c.price || 0) * 100), new Date(c.at).toDateString()].join('|');
@@ -217,7 +229,7 @@ function verdictInner(ctx, v, xp, compact) {
 function renderVerdictCard(ctx, v, done, xp) {
   const card = document.createElement('section'); card.className = 'card verdict-card pop'; card.style.setProperty('--c', '#fbbf24');
   const head = document.createElement('div'); head.className = 'sec-h'; head.append(avatar('boss', 36)); head.insertAdjacentHTML('beforeend', `<div class="sec-t"><b>Boss</b><span>Verdict on ${esc(ctx.sym)}</span></div><span class="chip">${v.score}/100</span>`);
-  card.append(head); const b = document.createElement('div'); b.className = 'sec-b'; b.innerHTML = verdictInner(ctx, v, null) + callButtons(ctx); card.append(b); (host || $('#report')).append(card); wireCallButtons(card, ctx);
+  card.append(head); const b = document.createElement('div'); b.className = 'sec-b'; b.innerHTML = verdictInner(ctx, v, null) + callButtons(ctx); card.append(b); $('#report').append(card); wireCallButtons(card, ctx);
 }
 function callLogged(t, dir) {
   if (t.aid) return ST.calls.some(c => c.aid === t.aid && c.dir === dir);
@@ -380,7 +392,7 @@ function openVerdict(ctx, v, xp) {
 }
 function openCallSheet(c) {
   const snap = c.snap || (LAST && LAST.sym === c.id && LAST.snap) || null;
-  fillSheet(snap, { mode: 'call', call: c });
+  fillSheet(snap, { mode: c.dir ? 'call' : 'verdict', call: c.dir ? c : null, xp: null });
   openSheetEl();
 }
 function wireSheet() {
@@ -405,7 +417,7 @@ function wireSheet() {
 // ---------------------------------------------------------------- analysis flow
 let RUN = null, LAST = null;
 function toast(html, ms = 3500) { const t = $('#toast'); t.innerHTML = html; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
-function setBusy(b) { document.body.classList.toggle('busy', b); $('#askBtn').disabled = b; }
+function setBusy(b) { document.body.classList.toggle('busy', b); }
 function setActivity(txt, on) { const a = $('#activity'); $('span', a).textContent = txt; a.classList.toggle('on', !!on); }
 const isLand = () => matchMedia('(orientation: landscape) and (max-height: 560px)').matches;
 
@@ -430,76 +442,153 @@ function earningsSection(ctx) {
 }
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
+let runGen = 0;
+const runAlive = gen => runGen === gen;
+
 async function startAnalysis(item) {
-  if (RUN) return;
-  if (typeof item === 'string') { setBusy(true); const r = await resolve(item); setBusy(false); if (!r) { toast('I couldn\'t find that ticker or coin. Try the symbol, like PLTR or BTC.'); return; } item = r; }
+  if (RUN && RUN.ctx && (RUN.done || []).length) {
+    try {
+      const prev = RUN; prev.skip = true;
+      const v = prev.v || AN.verdict(prev.ctx, prev.done);
+      finishAnalysis(prev.ctx, v, prev.done, prev.item, prev.order || [], prev.gen);
+    } catch (e) { console.error('flush previous run', e); }
+  } else if (RUN) { RUN.skip = true; try { if (dlgResolve) dlgResolve(); } catch (e) { } }
+  const gen = ++runGen;
+  if (sheetOpen) { hideSheet(); sheetPushed = false; }
+  if (typeof item === 'string') {
+    setBusy(true);
+    let r = null;
+    try { r = await resolve(item); } catch (e) { console.error(e); }
+    if (!runAlive(gen)) return;
+    if (!r) { setBusy(false); toast('I couldn\'t find that ticker or coin. Try the symbol, like PLTR or BTC.'); return; }
+    item = r;
+  }
   showTab('floor'); document.body.classList.remove('rep-open');
-  RUN = { item, skip: false };
+  RUN = { item, skip: false, gen, ctx: null, done: [], order: null, v: null };
   setBusy(true);
+  hideDialog();
   const crypto = item.kind === 'crypto', sym = item.id;
   const order = (crypto ? ORDER_COIN : ORDER_STOCK).filter(id => unlocked(id) && (id !== 'earnings' || !crypto));
   $('#report').innerHTML = '<button class="rep-x" id="repClose" type="button">Close</button>'; $('#repClose').onclick = () => document.body.classList.remove('rep-open');
   stopIdle(); syncNeeds();
   for (const id of Object.keys(ANALYSTS)) { scene.quiet(id); if (id !== 'you' && !order.includes(id) && id !== 'boss' && !scene.isHome(id)) scene.goHome(id, 1.4); }
   setActivity(`${sym} · team to the table`, true);
-  // v1 flow: the Boss calls everyone to the top-floor table while the real data loads
   scene.hop('boss'); scene.say('boss', `Table! ${sym.replace('.L', '')}`); SFX.play('blip');
   const intro = dialog('boss', `Team, to the table. We're looking at ${item.name} (${sym}).`, { auto: 1800 });
   const seats = new Map(order.map((id, i) => [id, tableSeat(i)]));
   const gather = Promise.all([scene.walk('boss', BOSS_HEAD, 1.2), ...order.map((id, i) => sleep(i * 240).then(() => scene.walk(id, seats.get(id), 1.45)))]);
-  let ctx;
-  try { [ctx] = await Promise.all([buildContext(item), intro]); }
-  catch (e) { console.error(e); scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 }); hideDialog(); setBusy(false); setActivity('Tap a bot'); RUN = null; syncNeeds(); order.forEach((id, i) => setTimeout(() => scene.goHome(id, 1.2), i * 300)); scene.goHome('boss'); startIdle(); return; }
-  scene.quiet('boss');
-  const closes = ctx.bars.map(b => b[4]).slice(-120);
-  scene.setHolo({ series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) });
-  renderHeader(ctx);
-  const done = [];
-  for (const id of order) {
-    if (id === 'bear') continue;
-    let sec; try { sec = id === 'earnings' ? earningsSection(ctx) : AN[id](ctx); } catch (e) { console.error(id, e); sec = { id, lines: [`My numbers didn't compute for this one (${e.message}).`], signals: [], headline: 'Error' }; }
-    sec.by = id; done.push(sec);
-  }
-  const bearSec = order.includes('bear') ? AN.bear(ctx, done) : null; if (bearSec) { bearSec.by = 'bear'; done.push(bearSec); }
-  setActivity(`${sym} · gathering upstairs`, true);
-  if (!RUN.skip) await Promise.race([gather, sleep(15000)]);
-  for (const id of order) if (!scene.isAt(id, seats.get(id))) scene.place(id, seats.get(id));
-  if (!scene.isAt('boss', BOSS_HEAD)) scene.place('boss', BOSS_HEAD);
-  // round the table: each analyst reports its finding, others react
-  for (let i = 0; i < done.length; i++) {
-    const sec = done[i], id = sec.by;
-    if (RUN.skip) { renderCard(sec, ctx); continue; }
-    setActivity(`${sym} · ${ANALYSTS[id].name} reporting`, true);
-    scene.hop(id); scene.say(id, nice(sec.headline || '…')); SFX.play('blip');
-    renderCard(sec, ctx, true);
-    const pages = sec.lines.filter(x => !x.startsWith('•')).slice(0, 2);
-    for (const p of pages) { if (RUN.skip) break; await dialog(id, p, { auto: Math.min(6500, 1500 + p.length * 34), step: `${i + 1} of ${done.length}` }); }
-    scene.quiet(id);
-    if (!RUN.skip) {
-      const tone = (sec.signals || []).reduce((a, g) => a + (g.s || 0) * (g.w || 1), 0);
-      const others = [...order.filter(o => o !== id), 'boss']; const o = Math.random() < 0.35 ? 'boss' : pick(others);
-      const line = tone > 0.6 ? pick(['Agreed.', 'Good read.', 'Nice, noted.', 'That helps the bull case.']) : tone < -0.6 ? pick(['Hmm, that\'s a worry.', 'Noted. Risky.', 'Not great.', 'That hurts the bull case.']) : pick(['Fair.', 'Mixed, then.', 'OK, next.', 'Noted.']);
-      scene.say(o, line); setTimeout(() => scene.quiet(o), 1700); await sleep(500);
+  let ctx = null, done = [];
+  try {
+    try { [ctx] = await Promise.all([buildContext(item), intro]); }
+    catch (e) {
+      console.error(e);
+      if (!runAlive(gen)) return;
+      scene.quiet('boss'); await dialog('boss', `I couldn't load real data for ${sym} right now (${e.message || e}). Nothing to analyse, so no guessing.`, { auto: 0 });
+      if (!runAlive(gen)) return;
+      hideDialog(); setBusy(false); setActivity('Tap a bot'); RUN = null; syncNeeds(); order.forEach((id, i) => setTimeout(() => scene.goHome(id, 1.2), i * 300)); scene.goHome('boss'); startIdle(); return;
+    }
+    if (!runAlive(gen)) return;
+    if (RUN && RUN.gen === gen) { RUN.ctx = ctx; RUN.order = order; }
+    scene.quiet('boss');
+    const closes = (ctx.bars || []).map(b => b[4]).slice(-120);
+    if (closes.length) scene.setHolo({ series: closes, up: closes[closes.length - 1] >= closes[0], label: sym.replace('.L', '').slice(0, 8) });
+    try { renderHeader(ctx); } catch (e) { console.error(e); }
+    for (const id of order) {
+      if (id === 'bear') continue;
+      let sec; try { sec = id === 'earnings' ? earningsSection(ctx) : AN[id](ctx); } catch (e) { console.error(id, e); sec = { id, lines: [`My numbers didn't compute for this one (${e.message}).`], signals: [], headline: 'Error' }; }
+      sec.by = id; done.push(sec);
+      if (RUN && RUN.gen === gen) RUN.done = done;
+    }
+    if (order.includes('bear')) {
+      try { const bearSec = AN.bear(ctx, done); if (bearSec) { bearSec.by = 'bear'; done.push(bearSec); } }
+      catch (e) { console.error('bear', e); done.push({ id: 'bear', by: 'bear', lines: [`I couldn't finish the bear case (${e.message}).`], signals: [], headline: 'Error' }); }
+    }
+    setActivity(`${sym} · gathering upstairs`, true);
+    if (!RUN.skip) await Promise.race([gather, sleep(15000)]);
+    if (!runAlive(gen)) return;
+    for (const id of order) if (!scene.isAt(id, seats.get(id))) scene.place(id, seats.get(id));
+    if (!scene.isAt('boss', BOSS_HEAD)) scene.place('boss', BOSS_HEAD);
+    for (let i = 0; i < done.length; i++) {
+      const sec = done[i], id = sec.by;
+      if (RUN.skip) { try { renderCard(sec, ctx); } catch (e) { console.error(e); } continue; }
+      setActivity(`${sym} · ${ANALYSTS[id].name} reporting`, true);
+      scene.hop(id); scene.say(id, nice(sec.headline || '…')); SFX.play('blip');
+      try { renderCard(sec, ctx, true); } catch (e) { console.error(e); }
+      const pages = (sec.lines || []).filter(x => !String(x).startsWith('•')).slice(0, 2);
+      for (const p of pages) { if (RUN.skip || !runAlive(gen)) break; await dialog(id, p, { auto: Math.min(6500, 1500 + p.length * 34), step: `${i + 1} of ${done.length}` }); }
+      if (!runAlive(gen)) return;
+      scene.quiet(id);
+      if (!RUN.skip) {
+        const tone = (sec.signals || []).reduce((a, g) => a + (g.s || 0) * (g.w || 1), 0);
+        const others = [...order.filter(o => o !== id), 'boss']; const o = Math.random() < 0.35 ? 'boss' : pick(others);
+        const line = tone > 0.6 ? pick(['Agreed.', 'Good read.', 'Nice, noted.', 'That helps the bull case.']) : tone < -0.6 ? pick(['Hmm, that\'s a worry.', 'Noted. Risky.', 'Not great.', 'That hurts the bull case.']) : pick(['Fair.', 'Mixed, then.', 'OK, next.', 'Noted.']);
+        scene.say(o, line); setTimeout(() => scene.quiet(o), 1700); await sleep(500);
+        if (!runAlive(gen)) return;
+      }
+    }
+    let v;
+    try { v = AN.verdict(ctx, done); } catch (e) {
+      console.error('verdict', e);
+      v = { score: 50, stance: 'Mixed', conf: 0, coverage: 0, sigs: [], bull: [], bear: [], cats: [], lines: ['I could not finish the score for this one. The reports below still stand.'] };
+    }
+    if (!runAlive(gen)) return;
+    if (RUN && RUN.gen === gen) { RUN.v = v; RUN.done = done; }
+    setActivity(`${sym} · Boss verdict`, true);
+    if (scene.holo) scene.setHolo(Object.assign({}, scene.holo, { score: v.score }));
+    scene.hop('boss'); scene.say('boss', `${v.score}/100 · ${v.stance}`);
+    if (!RUN.skip) await dialog('boss', (v.lines && v.lines[0]) || (`${v.score}/100 · ${v.stance}`), { auto: 2600, step: 'Verdict' });
+    if (!runAlive(gen)) return;
+    finishAnalysis(ctx, v, done, item, order, gen);
+  } catch (e) {
+    console.error('analysis', e);
+    if (!runAlive(gen)) return;
+    if (ctx) {
+      let v; try { v = AN.verdict(ctx, done); } catch (e2) { v = { score: 50, stance: 'Mixed', conf: 0, coverage: 0, sigs: [], bull: [], bear: [], cats: [], lines: ['I could not finish the score for this one.'] }; }
+      finishAnalysis(ctx, v, done, item, order, gen);
+    } else {
+      hideDialog(); setBusy(false); RUN = null; setActivity('Tap a bot'); startIdle();
+      toast('The run hit a snag before I had enough data. Try asking again.');
     }
   }
-  // Boss verdict at the head of the table
-  const v = AN.verdict(ctx, done);
-  setActivity(`${sym} · Boss verdict`, true);
-  scene.setHolo(Object.assign({}, scene.holo, { score: v.score }));
-  scene.hop('boss'); scene.say('boss', `${v.score}/100 · ${v.stance}`);
-  await dialog('boss', v.lines[0], { auto: RUN.skip ? 900 : 2600, step: 'Verdict' });
-  scene.quiet('boss'); SFX.play('win'); scene.cheer([...order, 'boss']);
-  const pts = awardPoints(item, v);
-  renderVerdictCard(ctx, v, done, pts);
-  ST.history.unshift({ id: item.id, name: item.name, kind: item.kind, score: v.score, stance: v.stance, at: Date.now() }); ST.history = ST.history.slice(0, 30);
-  const aid = item.id + '|' + Date.now(); LAST = { ctx, v, pts, sym: item.id, done, aid, snap: snapOf(ctx, v, done, aid) };
-  postAnalysisPrompts(ctx, v, done);
-  openVerdict(ctx, v, pts);
-  hideDialog();
-  const ids = [...done.map(s => s.by), 'boss'];
-  setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot'); syncNeeds();
-  setTimeout(async () => { if (RUN) return; ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && LAST && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
 }
+
+function recordAnalysis(ctx, v, aid, snap) {
+  const price = ctx.crypto ? ctx.live : (ctx.s && ctx.s.price);
+  const row = { id: ctx.item.id, kind: ctx.item.kind, name: ctx.name, dir: null, price, cur: ctx.cur, at: Date.now(), score: v.score, stance: v.stance, ondemand: !!ctx.item.ondemand, aid, snap };
+  const ix = ST.calls.findIndex(c => c.aid === aid);
+  if (ix >= 0) { Object.assign(ST.calls[ix], { snap, score: v.score, stance: v.stance, price: price ?? ST.calls[ix].price }); }
+  else ST.calls.unshift(row);
+  save(); renderCalls();
+}
+
+function finishAnalysis(ctx, v, done, item, order, gen) {
+  if (!runAlive(gen)) return;
+  hideDialog();
+  try {
+    scene.quiet('boss'); SFX.play('win'); scene.cheer([...(order || []), 'boss']);
+    let pts = null;
+    try { pts = awardPoints(item, v); } catch (e) { console.error(e); }
+    try { renderVerdictCard(ctx, v, done, pts); } catch (e) { console.error(e); }
+    ST.history.unshift({ id: item.id, name: item.name, kind: item.kind, score: v.score, stance: v.stance, at: Date.now() }); ST.history = ST.history.slice(0, 30);
+    const aid = item.id + '|' + Date.now();
+    let snap;
+    try { snap = snapOf(ctx, v, done, aid); } catch (e) { console.error(e); snap = { aid, at: Date.now(), sym: item.id, name: ctx.name, kind: ctx.item.kind, cur: ctx.cur, price: ctx.crypto ? ctx.live : (ctx.s && ctx.s.price), crypto: !!ctx.crypto, v, done: done || [] }; }
+    LAST = { ctx, v, pts, sym: item.id, done, aid, snap };
+    try { recordAnalysis(ctx, v, aid, snap); } catch (e) { console.error(e); }
+    try { postAnalysisPrompts(ctx, v, done); } catch (e) { console.error(e); }
+    try { openVerdict(ctx, v, pts); } catch (e) { console.error(e); toast('Verdict is ready — open it from Calls.'); }
+  } catch (e) {
+    console.error('finish', e);
+    hideDialog();
+    toast('The run finished with a problem opening the verdict. Try Calls.');
+  } finally {
+    if (!runAlive(gen)) return;
+    const ids = [...(done || []).map(s => s.by), 'boss'];
+    setBusy(false); RUN = null; renderChips(); setActivity('Tap a bot'); syncNeeds();
+    setTimeout(async () => { if (RUN) return; ids.forEach((id, i) => setTimeout(() => { if (!RUN) scene.goHome(id, 1.2); }, i * 450)); setTimeout(() => { if (!RUN && scene.holo && LAST && scene.holo.label === LAST.ctx.sym.replace('.L', '').slice(0, 8)) scene.setHolo(null); }, 12000); startIdle(); }, 4000);
+  }
+}
+
 const nice = s => { s = String(s); return /[a-z]/.test(s) ? s : s.charAt(0) + s.slice(1).toLowerCase(); };
 
 // ---------------------------------------------------------------- presentation message card
@@ -508,6 +597,7 @@ function dialog(id, text, o = {}) {
   const a = ANALYSTS[id]; const d = $('#dialog'); d.hidden = false; d.style.setProperty('--c', a.color);
   const av = $('.msg-av', d); av.innerHTML = ''; av.append(avatar(id, 22));
   $('.msg-name', d).textContent = a.name; $('.msg-role', d).textContent = a.title; $('.msg-step', d).textContent = o.step || '';
+  const skip = $('#skipBtn'); if (skip) skip.hidden = o.step === 'Verdict';
   const body = $('.msg-text', d);
   const parts = String(text).split(/(\s+)/); body.innerHTML = parts.map(w => /^\s+$/.test(w) ? w : `<span>${esc(w)}</span>`).join('');
   const words = $$('span', body);
@@ -523,7 +613,7 @@ function dialog(id, text, o = {}) {
     next();
   });
 }
-function hideDialog() { $('#dialog').hidden = true; }
+function hideDialog() { const d = $('#dialog'); d.hidden = true; const skip = $('#skipBtn'); if (skip) skip.hidden = false; }
 function dlgTap() { const d = $('#dialog'); clearTimeout(typeTimer); d.classList.add('done'); if (dlgResolve) dlgResolve(); }
 
 // ---------------------------------------------------------------- tower progression
@@ -600,7 +690,11 @@ function inboxAct(x, act, el) {
   if (act === 'approve') {
     if (x.type === 'prompt') {
       dropInbox(x);
-      if (x.action === 'call') logCall(callFromInbox(x), x.dir || leanOf(x) || 'bull');
+      if (x.action === 'call') {
+        const d = x.dir || leanOf(x);
+        if (d) logCall(callFromInbox(x), d);
+        else if (!openReport(x)) { const c = ST.calls.find(k => k.aid === x.aid || (k.id === x.sym && !k.dir)); if (c) openCallSheet(c); else toast('Open Calls to make a call on ' + esc(x.sym) + '.'); }
+      }
       else if (x.action === 'watch' || x.action === 'alert' || x.action === 'remind') { toWatch(x, x.action === 'alert' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. I\'ll flag a move over 5%.' : x.action === 'remind' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. Ask again around earnings.' : null); }
       return;
     }
@@ -630,7 +724,14 @@ function logCall(t, dir) {
   if (!t.snap && last) t.snap = last.snap;
   if (callLogged(t, dir)) { markLogged(dir); toast('Call already logged'); return false; }
   const aid = t.aid || (t.id + '|' + Date.now());
-  ST.calls.unshift({ id: t.id, kind: t.kind, name: t.name, dir, price: t.price, cur: t.cur, at: Date.now(), score: t.score ?? (last && last.v.score) ?? null, ondemand: !!t.ondemand, aid, snap: t.snap || null });
+  const pending = ST.calls.find(c => c.aid === aid && !c.dir);
+  if (pending) {
+    pending.dir = dir; pending.price = t.price; pending.cur = t.cur || pending.cur; pending.at = Date.now();
+    pending.score = t.score ?? pending.score ?? (last && last.v.score) ?? null;
+    if (t.snap) pending.snap = t.snap;
+  } else {
+    ST.calls.unshift({ id: t.id, kind: t.kind, name: t.name, dir, price: t.price, cur: t.cur, at: Date.now(), score: t.score ?? (last && last.v.score) ?? null, ondemand: !!t.ondemand, aid, snap: t.snap || null });
+  }
   const n = ST.inbox.length;
   ST.inbox = ST.inbox.filter(x => !(x.sym === t.id && x.action === 'call' && (x.dir || leanOf(x)) === dir));
   save(); addPoints(15); toast(`${dir === 'bull' ? 'Bullish' : 'Bearish'} call logged on <b>${esc(t.id)}</b> at ${esc(fmtMoney(t.price, t.cur))}. Scored at 7 and 30 days against real closes.`); SFX.play('blip');
@@ -641,6 +742,7 @@ async function histFor(c) { if (c.kind === 'crypto') { const x = await DATA.coin
 async function scoreCalls() {
   let changed = false;
   for (const c of ST.calls) {
+    if (!c.dir || !c.price) continue;
     for (const h of [7, 30]) {
       const k = 's' + h; if (c[k]) continue; const due = c.at + h * 86400000; if (Date.now() < due) continue;
       try {
@@ -657,19 +759,21 @@ async function scoreCalls() {
 }
 async function renderCalls() {
   const host = $('#calls'); if (!host) return;
-  const sc7 = ST.calls.filter(c => c.s7), sc30 = ST.calls.filter(c => c.s30);
+  const logged = ST.calls.filter(c => c.dir);
+  const sc7 = logged.filter(c => c.s7), sc30 = logged.filter(c => c.s30);
   const acc = a => a.length ? Math.round(a.filter(c => c.ok).length / a.length * 100) + '%' : '–';
-  const best = ST.calls.map(c => ({ c, r: c.s30 ? c.s30.dret : c.s7 ? c.s7.dret : null, h: c.s30 ? 30 : 7 })).filter(x => x.r != null).sort((a, b) => b.r - a.r).slice(0, 10);
+  const best = logged.map(c => ({ c, r: c.s30 ? c.s30.dret : c.s7 ? c.s7.dret : null, h: c.s30 ? 30 : 7 })).filter(x => x.r != null).sort((a, b) => b.r - a.r).slice(0, 10);
   await DATA.loadQuotes();
   const live = c => { if (c.kind === 'crypto') return null; const q = DATA.quotes.q[c.id]; return q ? q[0] : null; };
-  const open = ST.calls.filter(c => !c.s30); const dl = d => d === 'bull' ? 'Bullish' : 'Bearish';
-  const key = c => `data-at="${c.at}" data-id="${esc(c.id)}" data-dir="${c.dir}" role="button" tabindex="0"`;
-  host.innerHTML = `<div class="stats3"><div><b>${acc(sc7.map(c => c.s7))}</b><span>7-day accuracy<br>${sc7.length} scored</span></div><div><b>${acc(sc30.map(c => c.s30))}</b><span>30-day accuracy<br>${sc30.length} scored</span></div><div><b>${ST.calls.length}</b><span>calls made</span></div></div>
-  <h3 class="h3">Best calls</h3>${best.length ? '<div class="lb">' + best.map((x, i) => `<div class="lbr" ${key(x.c)}><span class="rk">${i + 1}</span><b>${esc(x.c.id)}</b><span class="dir ${x.c.dir}">${dl(x.c.dir)}</span><span class="muted">${x.h}d · ${W.dshort(x.c.at)}</span><b class="${x.r >= 0 ? 'up' : 'dn'}">${W.pct(x.r)}</b></div>`).join('') + '</div>' : '<p class="muted pad">Your leaderboard fills up once calls reach 7 days. Make a call from any verdict.</p>'}
-  <h3 class="h3">Open calls</h3>${open.length ? open.map(c => { const lp = live(c); const r = lp ? lp / c.price - 1 : null; const d7 = Math.max(0, Math.ceil((c.at + 7 * 864e5 - Date.now()) / 864e5)), d30 = Math.max(0, Math.ceil((c.at + 30 * 864e5 - Date.now()) / 864e5)); return `<div class="callc" ${key(c)}><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">at ${esc(fmtMoney(c.price, c.cur))} · ${W.dshort(c.at)}${c.score != null ? ' · verdict ' + c.score : ''}</div></div><div class="cc-r">${r != null ? `<b class="${(c.dir === 'bull' ? r : -r) >= 0 ? 'up' : 'dn'}">${W.pct(r)}</b>` : ''}<div class="muted">${c.s7 ? `7d ${c.s7.ok ? 'right' : 'wrong'} ${W.pct(c.s7.ret)}` : `7d in ${d7}d`} · 30d in ${d30}d</div></div></div>`; }).join('') : '<p class="muted pad">No open calls.</p>'}
+  const open = ST.calls.filter(c => !c.s30); const dl = d => d === 'bull' ? 'Bullish' : d === 'bear' ? 'Bearish' : 'Make call';
+  const dchip = c => `<span class="dir ${c.dir || 'none'}">${dl(c.dir)}</span>`;
+  const key = c => `data-at="${c.at}" data-id="${esc(c.id)}" data-dir="${c.dir || ''}" role="button" tabindex="0"`;
+  host.innerHTML = `<div class="stats3"><div><b>${acc(sc7.map(c => c.s7))}</b><span>7-day accuracy<br>${sc7.length} scored</span></div><div><b>${acc(sc30.map(c => c.s30))}</b><span>30-day accuracy<br>${sc30.length} scored</span></div><div><b>${ST.calls.length}</b><span>in history</span></div></div>
+  <h3 class="h3">Best calls</h3>${best.length ? '<div class="lb">' + best.map((x, i) => `<div class="lbr" ${key(x.c)}><span class="rk">${i + 1}</span><b>${esc(x.c.id)}</b>${dchip(x.c)}<span class="muted">${x.h}d · ${W.dshort(x.c.at)}</span><b class="${x.r >= 0 ? 'up' : 'dn'}">${W.pct(x.r)}</b></div>`).join('') + '</div>' : '<p class="muted pad">Your leaderboard fills up once calls reach 7 days. Make a call from any verdict.</p>'}
+  <h3 class="h3">Open</h3>${open.length ? open.map(c => { const lp = c.dir ? live(c) : null; const r = lp && c.price ? lp / c.price - 1 : null; const d7 = Math.max(0, Math.ceil((c.at + 7 * 864e5 - Date.now()) / 864e5)), d30 = Math.max(0, Math.ceil((c.at + 30 * 864e5 - Date.now()) / 864e5)); return `<div class="callc" ${key(c)}><div><b>${esc(c.id)}</b> ${dchip(c)}<div class="muted">${c.price ? 'at ' + esc(fmtMoney(c.price, c.cur)) + ' · ' : ''}${W.dshort(c.at)}${c.score != null ? ' · verdict ' + c.score : ''}</div></div><div class="cc-r">${r != null ? `<b class="${(c.dir === 'bull' ? r : -r) >= 0 ? 'up' : 'dn'}">${W.pct(r)}</b>` : ''}<div class="muted">${!c.dir ? 'Tap to open · make a call' : (c.s7 ? `7d ${c.s7.ok ? 'right' : 'wrong'} ${W.pct(c.s7.ret)}` : `7d in ${d7}d`) + ' · 30d in ' + d30 + 'd'}</div></div></div>`; }).join('') : '<p class="muted pad">Ask a ticker and the analysis will show up here.</p>'}
   ${sc30.length ? '<h3 class="h3">Settled</h3>' + sc30.map(c => `<div class="callc" ${key(c)}><div><b>${esc(c.id)}</b> <span class="dir ${c.dir}">${dl(c.dir)}</span><div class="muted">${W.dshort(c.at)} at ${esc(fmtMoney(c.price, c.cur))}</div></div><div class="cc-r">7d ${c.s7 && c.s7.ok ? 'right' : 'wrong'} · 30d ${c.s30.ok ? 'right' : 'wrong'} <b class="${c.s30.dret >= 0 ? 'up' : 'dn'}">${W.pct(c.s30.ret)}</b></div></div>`).join('') : ''}`;
   const openCall = el => {
-    const c = ST.calls.find(x => String(x.at) === el.dataset.at && x.id === el.dataset.id && x.dir === el.dataset.dir);
+    const c = ST.calls.find(x => String(x.at) === el.dataset.at && x.id === el.dataset.id && (x.dir || '') === (el.dataset.dir || ''));
     if (c) openCallSheet(c);
   };
   $$('#calls .callc, #calls .lbr').forEach(el => { el.onclick = () => openCall(el); el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCall(el); } }; });
@@ -718,7 +822,7 @@ function renderProfile() {
   <div class="stats3" style="margin-top:12px"><div><b>${ST.analyses}</b><span>analyses</span></div><div><b>${Object.keys(ST.seen).length}</b><span>tickers</span></div><div><b>${sc.length ? Math.round(ok / sc.length * 100) + '%' : '–'}</b><span>call accuracy</span></div></div>
   <h3 class="h3">The team</h3><div class="team">${Object.entries(ANALYSTS).filter(([id]) => id !== 'you').map(([id, a]) => `<div class="tm ${unlocked(id) ? '' : 'off'}" data-av="${id}"><span></span><div><b>${esc(a.name)}</b><small>${unlocked(id) ? esc(a.title) : 'Joins at level ' + a.lvl}</small></div></div>`).join('')}</div>
   <h3 class="h3">Floors, rooms and upgrades</h3><div class="unl">${UNLOCKS.map(u => { const has = u.lvl <= L; return `<label class="u ${has ? 'has' : ''}"><span class="ul">Level ${u.lvl}</span><span class="un">${esc(u.label)}${u.sub ? `<small>${esc(u.sub)}</small>` : ''}</span>${u.kind === 'room' && has ? `<input type="checkbox" data-d="${u.id}" ${ST.decorOff[u.id] ? '' : 'checked'} aria-label="Show ${esc(u.label)}">` : `<span class="ui">${has ? ICON_OK : ICON_LOCK}</span>`}</label>`; }).join('')}</div>
-  <h3 class="h3">Settings</h3><div class="set"><label>Prices in <span class="seg cur-t"><button data-c="GBP">£ GBP</button><button data-c="USD">$ USD</button></span></label><label>Sound <input type="checkbox" id="sndT" ${ST.sound ? 'checked' : ''}></label></div>
+  <h3 class="h3">Settings</h3><div class="set"><label>Prices in <span class="seg cur-t"><button data-c="GBP">£ GBP</button><button data-c="USD">$ USD</button></span></label><label>Theme <span class="seg theme-t">${Object.entries(THEMES).map(([id, lab]) => `<button data-th="${id}" class="${ST.theme === id ? 'on' : ''}">${lab}</button>`).join('')}</span></label><label>Sound <input type="checkbox" id="sndT" ${ST.sound ? 'checked' : ''}></label></div>
   <h3 class="h3">Recent analyses</h3>${ST.history.length ? ST.history.slice(0, 8).map(h => `<button class="hist" data-h="${esc(h.id)}" data-k="${h.kind}"><b>${esc(h.id)}</b><span>${esc(h.stance)}</span><em>${h.score}/100</em><small>${W.ago(h.at)}</small></button>`).join('') : '<p class="muted pad">None yet.</p>'}
   <h3 class="h3">Where the data comes from</h3><div class="srcs" id="srcs"></div>
   <p class="nfa big">Not financial advice. Everything here is computed from public data by fixed rules; nothing is made up, and missing data is marked as unavailable.</p>
@@ -727,6 +831,7 @@ function renderProfile() {
   $$('[data-d]', host).forEach(i => i.onchange = () => { ST.decorOff[i.dataset.d] = !i.checked; save(); roster(); });
   $('#sndT').onchange = e => { ST.sound = e.target.checked; save(); SFX.play('blip'); };
   $$('.cur-t button', host).forEach(b => b.onclick = () => setCur(b.dataset.c));
+  $$('.theme-t button', host).forEach(b => b.onclick = () => { applyTheme(b.dataset.th, true); renderProfile(); toast('Theme: ' + THEMES[ST.theme]); });
   $$('[data-h]', host).forEach(b => b.onclick = () => { const it = (DATA.search || []).find(x => x.id === b.dataset.h && x.kind === b.dataset.k) || { id: b.dataset.h, name: b.dataset.h, kind: b.dataset.k }; startAnalysis(it); });
   $('#reset').onclick = () => { if (confirm('Reset tower progress, calls and watchlist on this device?')) { localStorage.removeItem(KEY); location.reload(); } };
   updateStatus();
@@ -776,13 +881,17 @@ function promptCandidates(ctx, v, done) {
   const b = promptBase(ctx, v), sym = b.sym, out = [];
   const px = b.price != null && isFinite(b.price) ? fmtMoney(b.price, b.cur) : null;
   const R = rsiOf(done), sma = sma50Of(done);
-  if (R != null && R >= 70) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + sym, title: sma ? `${sym}'s RSI is ${R}. Set a pullback alert at ${sma}?` : `${sym}'s RSI is ${R}, overbought. Add it to your watchlist?` }));
-  else if (R != null && R <= 30) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + sym, title: px ? `${sym}'s RSI is ${R}, oversold. Watch for a bounce from ${px}?` : `${sym}'s RSI is ${R}, oversold. Add it to your watchlist?` }));
-  if (v && px && v.score >= 55) out.push(Object.assign({}, b, { action: 'call', dir: 'bull', by: 'boss', key: 'p|call|' + sym, title: `Log a bullish call on ${sym} at ${px}?` }));
-  else if (v && px && v.score <= 45) out.push(Object.assign({}, b, { action: 'call', dir: 'bear', by: unlocked('bear') ? 'bear' : 'boss', key: 'p|call|' + sym, title: `Log a bearish call on ${sym} at ${px}?` }));
-  if (!ST.watch.find(w => w.id === sym)) out.push(Object.assign({}, b, { action: 'watch', by: unlocked('quant') ? 'quant' : 'chartist', key: 'p|watch|' + sym, title: `Add ${sym} to your watchlist?` }));
+  if (R != null && R >= 70) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + (b.aid || sym), title: sma ? `${sym}'s RSI is ${R}. Set a pullback alert at ${sma}?` : `${sym}'s RSI is ${R}, overbought. Add it to your watchlist?` }));
+  else if (R != null && R <= 30) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + (b.aid || sym), title: px ? `${sym}'s RSI is ${R}, oversold. Watch for a bounce from ${px}?` : `${sym}'s RSI is ${R}, oversold. Add it to your watchlist?` }));
+  const aidk = b.aid || sym;
+  if (v && px) {
+    const d = v.score >= 52 ? 'bull' : v.score <= 48 ? 'bear' : null;
+    if (d) out.push(Object.assign({}, b, { action: 'call', dir: d, by: d === 'bear' && unlocked('bear') ? 'bear' : 'boss', key: 'p|call|' + aidk, title: `Log a ${d === 'bull' ? 'bullish' : 'bearish'} call on ${sym} at ${px}?` }));
+    else out.push(Object.assign({}, b, { action: 'call', dir: null, by: 'boss', key: 'p|call|' + aidk, title: `${sym} scored ${v.score}/100. Make a call at ${px}?` }));
+  }
+  if (!ST.watch.find(w => w.id === sym)) out.push(Object.assign({}, b, { action: 'watch', by: unlocked('quant') ? 'quant' : 'chartist', key: 'p|watch|' + aidk, title: `Add ${sym} to your watchlist?` }));
   const e = ctx.nextEarnings;
-  if (e && unlocked('earnings') && W.daysTo(e.ts) >= 0 && W.daysTo(e.ts) <= 21) { const d = W.daysTo(e.ts); out.push(Object.assign({}, b, { action: 'remind', by: 'earnings', key: 'p|earn|' + sym + '|' + e.ts, title: d === 0 ? `Earnings today for ${sym}. Remind you after the report?` : `Earnings in ${d} day${d === 1 ? '' : 's'}. Remind you?` })); }
+  if (e && unlocked('earnings') && W.daysTo(e.ts) >= 0 && W.daysTo(e.ts) <= 21) { const d = W.daysTo(e.ts); out.push(Object.assign({}, b, { action: 'remind', by: 'earnings', key: 'p|earn|' + (b.aid || (sym + '|' + e.ts)), title: d === 0 ? `Earnings today for ${sym}. Remind you after the report?` : `Earnings in ${d} day${d === 1 ? '' : 's'}. Remind you?` })); }
   return out;
 }
 function pushPrompts(list, n) {
@@ -791,7 +900,7 @@ function pushPrompts(list, n) {
   for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
   fresh.slice(0, n).forEach(it => addInbox(it));
 }
-function postAnalysisPrompts(ctx, v, done) { pushPrompts(promptCandidates(ctx, v, done), 1 + Math.floor(Math.random() * 3)); }
+function postAnalysisPrompts(ctx, v, done) { const list = promptCandidates(ctx, v, done); pushPrompts(list, Math.min(3, Math.max(1, list.length))); }
 function idlePrompts() {
   if (RUN || document.hidden || ST.inbox.length >= 4) return;
   const opts = [];
@@ -856,7 +965,7 @@ async function idleTick() {
 
 // ---------------------------------------------------------------- boot
 async function boot() {
-  scene = new Tower($('#tower'));
+  scene = new Tower($('#tower')); applyTheme(ST.theme || 'black', false);
   roster(); $('#stIco').append(avatar('boss', 22), avatar('chartist', 22), avatar('crypto', 22));
   TabBar.init($('.tabbar'), i => showTab(TABS[i]));
   applyLayout(); matchMedia('(orientation: landscape) and (max-height: 560px)').addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
