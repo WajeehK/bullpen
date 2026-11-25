@@ -1,4 +1,4 @@
-/* Bullpen analysis: indicators and rule-based write-ups from real numbers only. */
+/* Blackrock analysis: indicators and rule-based write-ups from real numbers only. */
 'use strict';
 const TA = {
   sma(a, n) { const o = new Array(a.length).fill(null); let s = 0; for (let i = 0; i < a.length; i++) { s += a[i]; if (i >= n) s -= a[i - n]; if (i >= n - 1) o[i] = s / n; } return o; },

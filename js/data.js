@@ -1,4 +1,4 @@
-/* Bullpen data layer. Actions-built JSON first, live public APIs where they allow browser reads. */
+/* Blackrock data layer. Actions-built JSON first, live public APIs where they allow browser reads. */
 'use strict';
 const TICKER = 'https://wajeehk.github.io/ticker/';
 const IH = 'https://wajeehk.github.io/congress-trades/';

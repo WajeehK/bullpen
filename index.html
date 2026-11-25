@@ -3,55 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0a14">
-<title>Bullpen · pixel trading floor</title>
-<meta name="description" content="Ask a team of pixel analysts about any stock or coin. Real data, rule-based write-ups, not financial advice.">
+<meta name="theme-color" content="#0c0d12">
+<title>Blackrock · Analyst Tower</title>
+<meta name="description" content="Blackrock: ask a tower of analyst bots about any stock or coin. Real public data, rule-based write-ups. Not financial advice.">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=b2">
+<link rel="icon" type="image/png" href="icons/br-icon-192.png">
+<link rel="apple-touch-icon" href="icons/br-icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=b3">
 </head>
 <body>
 <header class="top">
-  <div class="brand"><img src="icons/icon-192.png" alt=""><span>Bullpen</span></div>
-  <div class="hud"><div class="lvl"><span id="lvl">Lv 1</span><div id="xpbar"><i></i></div><small id="xptxt"></small></div>
-  <div class="seg cur-t"><button data-c="GBP">£</button><button data-c="USD">$</button></div></div>
+  <div class="brand"><img src="icons/br-icon-192.png" alt=""><div><b>Blackrock</b><small>Analyst Tower</small></div></div>
+  <div class="seg cur-t" role="group" aria-label="Currency"><button data-c="GBP">£ GBP</button><button data-c="USD">$ USD</button></div>
 </header>
 <main>
   <section id="tab-floor" class="tab on">
     <form id="ask" autocomplete="off">
-      <div class="askw"><svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
-      <input id="q" type="search" enterkeyhint="go" placeholder="Should I look at Palantir? · PLTR · BTC" aria-label="Ask about a stock or coin">
-      <button id="askBtn" class="btn ask">Ask</button></div>
+      <div class="askw"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+      <input id="q" type="search" enterkeyhint="go" placeholder="Ask about a stock or coin · PLTR, BTC" aria-label="Ask about a stock or coin">
+      <button id="askBtn" class="btn primary">Ask</button></div>
       <div id="ac" class="ac" hidden></div>
     </form>
     <div id="chips" class="chips"></div>
     <div id="stage" class="stage">
-      <canvas id="floor" aria-label="Pixel trading floor"></canvas>
-      <div id="dialog" class="dialog" hidden><div class="dlg-face"></div><div class="dlg-main"><span class="dlg-name"></span><p class="dlg-text"></p></div><button id="skipBtn" class="dlg-skip" type="button">Skip ⏭</button><span class="dlg-more">▼</span><div class="dlg-bar"></div></div>
-      <div class="loader">Fetching real data…</div>
+      <canvas id="tower" aria-label="Blackrock Tower, a cutaway building with analyst bots"></canvas>
+      <div class="status glass" id="status">
+        <div class="st-row"><img src="icons/br-icon-192.png" alt=""><div><div class="st-t">Blackrock Tower <span class="live"><i></i>Live</span></div><div class="st-sub" id="stSub">Loading…</div></div></div>
+        <div class="st-counts"><span><i class="d mv"></i><b id="cMove">0</b> moving</span><span><i class="d wk"></i><b id="cWork">0</b> working</span><span><i class="d wt"></i><b id="cWait">0</b> waiting</span></div>
+      </div>
+      <div class="activity glass" id="activity"><i></i><span>Drag to explore · tap a bot</span></div>
+      <div class="floors glass" id="floorRail" aria-label="Floors"></div>
+      <div id="dialog" class="msg glass" hidden>
+        <div class="msg-av"></div>
+        <div class="msg-main">
+          <div class="msg-h"><b class="msg-name"></b><span class="msg-role"></span><span class="msg-step"></span></div>
+          <p class="msg-text"></p>
+          <div class="msg-foot"><div class="msg-bar"><i></i></div><button id="skipBtn" class="btn tiny ghost" type="button">Skip to verdict</button></div>
+        </div>
+      </div>
+      <div class="loader glass">Fetching real data…</div>
     </div>
-    <div id="report" class="report"><div class="intro card"><h2>Your trading floor</h2><p>Type a ticker, a coin or a question. The analysts walk to the table and each one reports from real market data: charts, accounts, news, Congress and insider trades, and the risks. Then the Boss gives a scored verdict you can bet on with a <b>call</b>.</p><p class="nfa">Not financial advice</p></div></div>
+    <aside id="side" class="side">
+      <section class="panel glass" id="waiting"><div class="panel-h"><b>Waiting on me</b><span class="badge" id="wcount">0</span></div><div id="wlist"></div></section>
+      <section class="panel glass" id="progress"></section>
+    </aside>
+    <div id="report" class="report"><button class="rep-x" id="repClose" type="button" aria-label="Close report">Close</button><div class="intro card"><h2>Your analyst tower</h2><p>Ask about a ticker, a coin or a question. Each analyst bot reports from its own floor using real market data: charts, accounts, news, Congress and insider trades, and the risks. Then the bots meet in the penthouse, where the Boss gives a scored verdict.</p><p class="nfa">Not financial advice</p></div></div>
   </section>
   <section id="tab-calls" class="tab"><h2 class="ph">Your calls</h2><div id="calls"></div></section>
   <section id="tab-watch" class="tab"><h2 class="ph">Watchlist</h2><div id="watch"></div></section>
   <section id="tab-profile" class="tab"><h2 class="ph">Profile</h2><div id="profile"></div></section>
 </main>
-<nav class="tabbar" style="--i:0">
-  <div class="tab-blob"></div>
-  <button class="tab-b on" aria-label="Floor"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Floor</span></button>
-  <button class="tab-b" aria-label="Calls"><svg viewBox="0 0 24 24"><path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z"/></svg><span>Calls</span></button>
-  <button class="tab-b" aria-label="Watchlist"><svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Watch</span></button>
-  <button class="tab-b" aria-label="Profile"><svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg><span>Profile</span></button>
+<nav class="tabbar" role="tablist" aria-label="Sections">
+  <svg class="goo-defs" width="0" height="0" aria-hidden="true"><defs><filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/><feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -9" result="g"/><feComposite in="SourceGraphic" in2="g" operator="atop"/></filter></defs></svg>
+  <div class="tb-goo"><i class="tb-pill"></i><i class="tb-drop"></i></div><i class="tb-rim"></i>
+  <button class="tab-b on" role="tab" aria-label="Tower"><svg viewBox="0 0 24 24"><path d="M6 21V5.5L12 2l6 3.5V21h-4v-4h-4v4zm3-13v2h2V8zm4 0v2h2V8zm-4 4v2h2v-2zm4 0v2h2v-2z"/></svg><span>Tower</span></button>
+  <button class="tab-b" role="tab" aria-label="Calls"><svg viewBox="0 0 24 24"><path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z"/></svg><span>Calls</span></button>
+  <button class="tab-b" role="tab" aria-label="Watchlist"><svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Watchlist</span></button>
+  <button class="tab-b" role="tab" aria-label="Profile"><svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg><span>Profile</span></button>
 </nav>
 <div id="verdict" class="vmodal" hidden><div class="vm"><button class="vm-x" aria-label="Close">✕</button><div class="vm-body"></div></div></div>
-<div id="toast" class="toast"></div>
-<script src="js/pixel.js?v=b2"></script>
-<script src="js/scene.js?v=b2"></script>
-<script src="js/analysis.js?v=b2"></script>
-<script src="js/data.js?v=b2"></script>
-<script src="js/chart.js?v=b2"></script>
-<script src="js/app.js?v=b2"></script>
+<div id="toast" class="toast" role="status"></div>
+<script src="js/bots.js?v=b3"></script>
+<script src="js/tower.js?v=b3"></script>
+<script src="js/analysis.js?v=b3"></script>
+<script src="js/data.js?v=b3"></script>
+<script src="js/chart.js?v=b3"></script>
+<script src="js/tabbar.js?v=b3"></script>
+<script src="js/app.js?v=b3"></script>
 </body>
 </html>

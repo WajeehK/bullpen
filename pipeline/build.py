@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bullpen data build (GitHub Actions). Real public data only, nothing invented.
+"""Blackrock (repo: bullpen) data build (GitHub Actions). Real public data only, nothing invented.
 
 Writes ./data:
   search.json            autocomplete universe (stocks, ETFs, crypto)
