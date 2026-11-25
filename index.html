@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0c0d12">
+<meta name="theme-color" content="#17181d">
 <title>Blackrock · Analyst Tower</title>
 <meta name="description" content="Blackrock: ask a tower of analyst bots about any stock or coin. Real public data, rule-based write-ups. Not financial advice.">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest-b7.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" type="image/png" href="icons/br-icon-192.png">
 <link rel="apple-touch-icon" href="icons/br-icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=b6">
+<link rel="stylesheet" href="css/style.css?v=b7">
 </head>
 <body>
 <header class="top">
@@ -22,12 +25,12 @@
   <section id="tab-floor" class="tab on">
     <div class="tbar">
       <div class="status glass" id="status">
-        <div class="st-row"><span class="st-ico" id="stIco"></span><div class="st-m"><div class="st-t">Blackrock Tower</div><div class="st-sub"><span class="live"><i></i>Live</span><span class="sep">·</span><span id="stTime">--:--</span><span class="sep">·</span><span id="stBots"></span></div></div><div class="activity" id="activity"><i></i><span>Tap a bot</span></div></div>
+        <div class="st-row"><span class="st-ico" id="stIco"></span><div class="st-m"><div class="st-t">Blackrock Tower <span class="st-lvl" id="stLvl">Lv 1</span></div><div class="st-sub"><span class="live"><i></i>Live</span><span class="sep">·</span><span id="stTime">--:--</span><span class="sep">·</span><span id="stBots"></span></div></div><div class="activity" id="activity"><i></i><span>Tap a bot</span></div></div>
         <div class="st-counts"><span class="cnt"><i class="d wk"></i><b id="cWork">0</b> working</span><span class="cnt"><i class="d wt"></i><b id="cWait">0</b> waiting</span><span class="cnt"><i class="d mv"></i><b id="cMove">0</b> moving</span></div>
       </div>
       <form id="ask" autocomplete="off">
         <div class="askw"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 0 1 6.3 12.9l5.4 5.4-1.4 1.4-5.4-5.4A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
-        <input id="q" type="search" enterkeyhint="go" placeholder="Ask · PLTR, BTC, NVDA…" aria-label="Ask about a stock or coin">
+        <input id="q" type="search" enterkeyhint="go" placeholder="Ask a ticker or coin" aria-label="Ask about a stock or coin">
         <button id="askBtn" class="btn primary">Ask</button></div>
         <div id="ac" class="ac" hidden></div>
       </form>
@@ -65,12 +68,12 @@
 <div id="verdict" class="vmodal" hidden><div class="vm"><button class="vm-x" aria-label="Close">✕</button><div class="vm-body"></div></div></div>
 <div id="toast" class="toast" role="status"></div>
 <script src="js/vendor/three.min.js?v=r149"></script>
-<script src="js/bots.js?v=b6"></script>
-<script src="js/tower.js?v=b6"></script>
-<script src="js/analysis.js?v=b6"></script>
-<script src="js/data.js?v=b6"></script>
-<script src="js/chart.js?v=b6"></script>
-<script src="js/tabbar.js?v=b6"></script>
-<script src="js/app.js?v=b6"></script>
+<script src="js/bots.js?v=b7"></script>
+<script src="js/tower.js?v=b7"></script>
+<script src="js/analysis.js?v=b7"></script>
+<script src="js/data.js?v=b7"></script>
+<script src="js/chart.js?v=b7"></script>
+<script src="js/tabbar.js?v=b7"></script>
+<script src="js/app.js?v=b7"></script>
 </body>
 </html>

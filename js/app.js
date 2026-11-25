@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b6';
+const BUILD = 'b7';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -46,7 +46,7 @@ const levelOf = xp => { let L = 1; while (xp >= lvlXP(L + 1)) L++; return L; };
 // ---------------------------------------------------------------- state
 const KEY = 'bullpen.v1'; // kept so existing progress carries over
 const ST = Object.assign({ xp: 0, analyses: 0, seen: {}, calls: [], watch: [], cur: 'GBP', sound: false, decorOff: {}, history: [], lastDay: '', alerted: {}, inbox: [] }, JSON.parse(localStorage.getItem(KEY) || '{}'));
-if (!Array.isArray(ST.inbox)) ST.inbox = [];
+if (!Array.isArray(ST.inbox)) ST.inbox = []; ST.inbox = ST.inbox.slice(0, 4);
 const save = () => localStorage.setItem(KEY, JSON.stringify(ST));
 const level = () => levelOf(ST.xp);
 const unlocked = id => (ANALYSTS[id] ? ANALYSTS[id].lvl || 1 : (UNLOCKS.find(u => u.id === id) || { lvl: 1 }).lvl) <= level();
@@ -291,9 +291,8 @@ async function startAnalysis(item) {
   const pts = awardPoints(item, v);
   renderVerdictCard(ctx, v, done, pts);
   ST.history.unshift({ id: item.id, name: item.name, kind: item.kind, score: v.score, stance: v.stance, at: Date.now() }); ST.history = ST.history.slice(0, 30);
-  const price = ctx.crypto ? ctx.live : ctx.s.price;
-  addInbox({ type: 'analysis', key: 'a|' + item.id, sym: item.id, kind: item.kind, name: ctx.name, ondemand: !!item.ondemand, price, cur: ctx.cur, score: v.score, stance: v.stance, by: 'boss', title: `${item.id} analysis is ready`, sub: `${v.score}/100 · ${v.stance} · confidence ${v.conf}%` });
-  LAST = { ctx, v, pts, sym: item.id };
+  LAST = { ctx, v, pts, sym: item.id, done };
+  postAnalysisPrompts(ctx, v, done);
   openVerdict(ctx, v, pts);
   hideDialog();
   const ids = [...done.map(s => s.by), 'boss'];
@@ -350,17 +349,18 @@ function renderProgress() { const p = $('#progress'); if (p) p.innerHTML = progr
 function updateStatus() {
   if (!scene) return; const s = scene.stats(); const n = Object.keys(ANALYSTS).filter(id => id !== 'you' && unlocked(id)).length;
   $('#stTime').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  $('#stBots').textContent = `${n} bots · Lvl ${level()}`;
+  $('#stBots').textContent = `${n} bots`; const lv = $('#stLvl'); if (lv) lv.textContent = 'Lv ' + level();
   $('#cMove').textContent = s.moving; $('#cWork').textContent = s.working; $('#cWait').textContent = ST.inbox.length;
   const wc = $('#wcount'); wc.textContent = ST.inbox.length; wc.classList.toggle('zero', !ST.inbox.length);
   $$('.cur-t button').forEach(b => b.classList.toggle('on', b.dataset.c === ST.cur));
 }
 
 // ---------------------------------------------------------------- waiting on me
-function addInbox(it) { it.at = Date.now(); ST.inbox = ST.inbox.filter(x => x.key !== it.key); ST.inbox.unshift(it); ST.inbox = ST.inbox.slice(0, 12); save(); renderInbox(); }
+function addInbox(it) { it.at = Date.now(); ST.inbox = ST.inbox.filter(x => x.key !== it.key); ST.inbox.unshift(it); ST.inbox = ST.inbox.slice(0, 4); save(); renderInbox(); }
 function itemOf(x) { return { id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand }; }
 const leanOf = x => x.score >= 55 ? 'bull' : x.score <= 45 ? 'bear' : null;
 function question(x) {
+  if (x.type === 'prompt') return x.title;
   if (x.type === 'analysis') { const d = leanOf(x); return `${x.sym} scored ${x.score}/100, ${String(x.stance || '').toLowerCase()}. ${d ? `Log a ${d === 'bull' ? 'bullish' : 'bearish'} call at ${fmtMoney(x.price, x.cur)}?` : 'Add it to your watchlist?'}`; }
   if (x.type === 'move') return `${x.title}. Run the team on it again?`;
   if (x.type === 'call') return `${x.title} (${x.sub}). Re-check it?`;
@@ -373,7 +373,11 @@ function syncNeeds() {
 }
 function renderInbox() {
   const host = $('#wlist'); if (!host) return; updateStatus(); syncNeeds();
-  if (!ST.inbox.length) { host.innerHTML = `<div class="empty">Nothing needs you. Watchlist moves over 5%, calls ready to score and finished analyses land here.</div>${LAST && isLand() ? '<button class="btn tiny repbtn" id="openRep">Open last report</button>' : ''}`; const r = $('#openRep'); if (r) r.onclick = () => document.body.classList.add('rep-open'); return; }
+  const empty = !ST.inbox.length;
+  const wait = $('#waiting'), side = $('#side');
+  if (wait) wait.hidden = empty;
+  if (side) side.classList.toggle('has-wait', !empty);
+  if (empty) { host.innerHTML = ''; return; }
   host.innerHTML = ST.inbox.map((x, i) => { const a = ANALYSTS[x.by] || ANALYSTS.boss; return `<div class="wi" data-i="${i}"><div class="wi-h"><span class="wi-av"></span><b>${esc(a.name)}</b><span class="wi-ago">${esc(W.ago(x.at))}</span></div><div class="wi-q">${esc(question(x))}</div>
   <div class="wi-a"><button class="btn ok" data-act="approve">Approve</button><button class="btn rp" data-act="reply">Reply</button><button class="btn sk" data-act="skip">Skip</button></div></div>`; }).join('');
   $$('.wi', host).forEach(el => {
@@ -383,14 +387,27 @@ function renderInbox() {
 }
 function dropInbox(x) { ST.inbox = ST.inbox.filter(y => y !== x); save(); renderInbox(); }
 function openReport(x) { if (LAST && LAST.sym === x.sym) { if (isLand()) document.body.classList.add('rep-open'); else openVerdict(LAST.ctx, LAST.v, null); return true; } return false; }
+function toWatch(x, msg) {
+  const it = { id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand };
+  const had = ST.watch.find(w => w.id === it.id);
+  if (!had) { ST.watch.push(it); save(); }
+  renderWatch(); pollWatch();
+  toast(msg || (had ? esc(it.id) + ' is already on your watchlist' : 'Added ' + esc(it.id) + ' to your watchlist'));
+}
 function inboxAct(x, act, el) {
   if (act === 'skip') { dropInbox(x); return; }
   if (act === 'approve') {
-    if (x.type === 'analysis') { const d = leanOf(x); dropInbox(x); if (d) logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, d); else addWatch({ id: x.sym, name: x.name, kind: x.kind, ondemand: x.ondemand }); return; }
+    if (x.type === 'prompt') {
+      dropInbox(x);
+      if (x.action === 'call') logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, x.dir || leanOf(x) || 'bull');
+      else if (x.action === 'watch' || x.action === 'alert' || x.action === 'remind') { toWatch(x, x.action === 'alert' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. I\'ll flag a move over 5%.' : x.action === 'remind' ? 'Added <b>' + esc(x.sym) + '</b> to your watchlist. Ask again around earnings.' : null); }
+      return;
+    }
+    if (x.type === 'analysis') { const d = leanOf(x); dropInbox(x); if (d) logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, d); else toWatch(x); return; }
     dropInbox(x); startAnalysis(itemOf(x)); return;
   }
   if (act === 'reply') {
-    if (x.type === 'analysis') { if (!openReport(x)) { dropInbox(x); startAnalysis(itemOf(x)); } return; }
+    if (x.type === 'prompt' || x.type === 'analysis') { if (!openReport(x)) { dropInbox(x); startAnalysis(itemOf(x)); } return; }
     if (x.type === 'call' || x.type === 'due') { showTab('calls'); return; }
     const row = $('.wi-a', el); row.innerHTML = '<button class="btn bull" data-d="bull">Bullish call</button><button class="btn bear" data-d="bear">Bearish call</button><button class="btn sk" data-d="x">Cancel</button>';
     $$('[data-d]', row).forEach(b => b.onclick = () => { if (b.dataset.d === 'x') { renderInbox(); return; } logCall({ id: x.sym, kind: x.kind, name: x.name, ondemand: x.ondemand, price: x.price, cur: x.cur, score: x.score }, b.dataset.d); dropInbox(x); });
@@ -521,12 +538,51 @@ function renderChips() {
   $('#chips').innerHTML = list.map(s => `<button class="chipb" data-s="${esc(s)}">${esc(s)}</button>`).join('');
   $$('#chips .chipb').forEach(b => b.onclick = async () => { await DATA.loadSearch(); const it = DATA.search.find(x => x.id === b.dataset.s && (['BTC', 'ETH', 'SOL'].includes(b.dataset.s) ? x.kind === 'crypto' : x.kind !== 'crypto')) || DATA.search.find(x => x.id === b.dataset.s); if (it) startAnalysis(it); });
 }
+
+// ---------------------------------------------------------------- suggested waiting cards (real figures only)
+function rsiOf(done) { const ch = (done || []).find(s => s.id === 'chartist'); const g = ch && (ch.signals || []).find(x => /RSI/.test(x.name)); const n = g ? +g.reading : NaN; return isFinite(n) ? n : null; }
+function sma50Of(done) { const ch = (done || []).find(s => s.id === 'chartist'); const f = ch && (ch.facts || []).find(x => x.k === '50-day'); return f && f.v && f.v !== 'n/a' ? f.v : null; }
+function promptBase(ctx, v) {
+  const price = ctx.crypto ? ctx.live : ctx.s && ctx.s.price;
+  return { type: 'prompt', sym: ctx.item.id, kind: ctx.item.kind, name: ctx.name, ondemand: !!ctx.item.ondemand, price, cur: ctx.cur, score: v && v.score, stance: v && v.stance };
+}
+function promptCandidates(ctx, v, done) {
+  if (!ctx || !ctx.item) return [];
+  const b = promptBase(ctx, v), sym = b.sym, out = [];
+  const px = b.price != null && isFinite(b.price) ? fmtMoney(b.price, b.cur) : null;
+  const R = rsiOf(done), sma = sma50Of(done);
+  if (R != null && R >= 70) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + sym, title: sma ? `${sym}'s RSI is ${R}. Set a pullback alert at ${sma}?` : `${sym}'s RSI is ${R}, overbought. Add it to your watchlist?` }));
+  else if (R != null && R <= 30) out.push(Object.assign({}, b, { action: 'alert', by: 'chartist', key: 'p|alert|' + sym, title: px ? `${sym}'s RSI is ${R}, oversold. Watch for a bounce from ${px}?` : `${sym}'s RSI is ${R}, oversold. Add it to your watchlist?` }));
+  if (v && px && v.score >= 55) out.push(Object.assign({}, b, { action: 'call', dir: 'bull', by: 'boss', key: 'p|call|' + sym, title: `Log a bullish call on ${sym} at ${px}?` }));
+  else if (v && px && v.score <= 45) out.push(Object.assign({}, b, { action: 'call', dir: 'bear', by: unlocked('bear') ? 'bear' : 'boss', key: 'p|call|' + sym, title: `Log a bearish call on ${sym} at ${px}?` }));
+  if (!ST.watch.find(w => w.id === sym)) out.push(Object.assign({}, b, { action: 'watch', by: unlocked('quant') ? 'quant' : 'chartist', key: 'p|watch|' + sym, title: `Add ${sym} to your watchlist?` }));
+  const e = ctx.nextEarnings;
+  if (e && unlocked('earnings') && W.daysTo(e.ts) >= 0 && W.daysTo(e.ts) <= 21) { const d = W.daysTo(e.ts); out.push(Object.assign({}, b, { action: 'remind', by: 'earnings', key: 'p|earn|' + sym + '|' + e.ts, title: d === 0 ? `Earnings today for ${sym}. Remind you after the report?` : `Earnings in ${d} day${d === 1 ? '' : 's'}. Remind you?` })); }
+  return out;
+}
+function pushPrompts(list, n) {
+  const have = new Set(ST.inbox.map(x => x.key));
+  const fresh = list.filter(x => x && !have.has(x.key));
+  for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
+  fresh.slice(0, n).forEach(it => addInbox(it));
+}
+function postAnalysisPrompts(ctx, v, done) { pushPrompts(promptCandidates(ctx, v, done), 1 + Math.floor(Math.random() * 3)); }
+function idlePrompts() {
+  if (RUN || document.hidden || ST.inbox.length >= 4) return;
+  const opts = [];
+  if (LAST && LAST.ctx) opts.push(...promptCandidates(LAST.ctx, LAST.v, LAST.done));
+  for (const w of ST.watch) {
+    const q = WQ[w.id]; if (!q || q.p == null || !isFinite(q.p) || q.chg == null || !isFinite(q.chg)) continue;
+    const dir = q.chg >= 0 ? 'bull' : 'bear';
+    opts.push({ type: 'prompt', action: 'call', dir, by: w.kind === 'crypto' ? 'crypto' : 'chartist', key: 'p|move|' + w.id + '|' + new Date().toDateString(), sym: w.id, kind: w.kind, name: w.name, ondemand: w.ondemand, price: q.p, cur: q.cur, title: `${w.id} is ${q.chg >= 0 ? 'up' : 'down'} ${W.pctAbs(q.chg)} today at ${fmtMoney(q.p, q.cur)}. Log a ${dir === 'bull' ? 'bullish' : 'bearish'} call?` });
+  }
+  if (opts.length) pushPrompts(opts, 1);
+}
+
 function applyLayout() {
   const land = isLand(); document.body.classList.toggle('land', land);
-  requestAnimationFrame(() => {
-    if (land) { const tb = $('.tabbar').getBoundingClientRect(), sd = $('#side').getBoundingClientRect(), st = $('#status').getBoundingClientRect(); scene.setInsets({ l: Math.round(tb.right + 4), r: Math.round(innerWidth - sd.left + 4), t: Math.round(st.bottom + 2), b: 6 }); }
-    else scene.setInsets({ l: 0, r: 0, t: 0, b: 0 });
-  });
+  askIn().placeholder = land ? 'Ask a ticker' : 'Ask a ticker or coin';
+  requestAnimationFrame(() => scene.setInsets({ l: 0, r: 0, t: 0, b: 0 }));
   renderInbox();
 }
 
@@ -599,6 +655,7 @@ async function boot() {
   const sp = new URLSearchParams(location.search); const ask = sp.get('ask'); if (ask) startAnalysis(ask);
   if (sp.has('noidle')) stopIdle();
   setInterval(idleTick, 3200);
+  setInterval(idlePrompts, 180000);
   scoreCalls(); pollWatch(); setInterval(pollWatch, 60000); setInterval(scoreCalls, 3600000);
   document.addEventListener('visibilitychange', () => { if (document.hidden) scene.stop(); else if ($('#tab-floor').classList.contains('on')) scene.start(); });
 }
