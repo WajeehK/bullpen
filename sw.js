@@ -1,6 +1,6 @@
 /* Blackrock service worker: versioned shell cache, network-first data. */
-const V = 'blackrock-b10'; // b10: finish runs, calls history, waiting cards, themes, portrait inset
-const SHELL = ['./', 'index.html', 'css/style.css?v=b10', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b10', 'js/tower.js?v=b10', 'js/analysis.js?v=b10', 'js/data.js?v=b10', 'js/chart.js?v=b10', 'js/tabbar.js?v=b10', 'js/app.js?v=b10', 'manifest-b7.webmanifest', 'manifest.webmanifest', 'icons/br-icon-192.png', 'icons/br-icon-512.png'];
+const V = 'blackrock-b11'; // b11: new PWA icon + launch splash
+const SHELL = ['./', 'index.html', 'css/style.css?v=b11', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b11', 'js/tower.js?v=b11', 'js/analysis.js?v=b11', 'js/data.js?v=b11', 'js/chart.js?v=b11', 'js/tabbar.js?v=b11', 'js/app.js?v=b11', 'manifest-b11.webmanifest', 'manifest.webmanifest', 'icons/br-icon-b11-192.png', 'icons/br-icon-b11-512.png', 'icons/br-icon-b11-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {
