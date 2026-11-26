@@ -487,9 +487,12 @@ class Tower {
     c.updateProjectionMatrix(); c.updateMatrixWorld();
   }
   lockCam() {
-    const fr = this.free(), land = this.w > this.h * 1.3;
+    const fr = this.free(), land = this.w > this.h * 1.15, tab = land && this.w >= 900 && this.h >= 561;
     const ext = pts => { const a = { u0: 1e9, u1: -1e9, v0: 1e9, v1: -1e9 }; for (const p of pts) { const q = this.uvOf(...p); a.u0 = Math.min(a.u0, q.u); a.u1 = Math.max(a.u1, q.u); a.v0 = Math.min(a.v0, q.v); a.v1 = Math.max(a.v1, q.v); } return a; };
-    if (!land) {
+    if (tab) {
+      const a = this.bAll, k = Math.min(fr.w * 0.97 / (a.u1 - a.u0), fr.h * 0.98 / (a.v1 - a.v0));
+      this.zoom = k / this.basePPU; this.u = (a.u0 + a.u1) / 2; this.v = (a.v0 + a.v1) / 2;
+    } else if (!land) {
       const t = this.bTop, k = this.basePPU;
       this.u = (t.u0 + t.u1) / 2; this.v = t.v1 - (fr.cy - fr.y - 4) / k; this.zoom = 1;
     } else {
@@ -615,7 +618,7 @@ class Tower {
     const changed = w !== this.w || h !== this.h; this.w = w; this.h = h;
     if (this.r && changed) this.r.setSize(w, h, false);
     const fr = this.free(), t = this.bTop, uw = t.u1 - t.u0, vh = t.v1 - t.v0;
-    const land = w > h * 1.3;
+    const land = w > h * 1.15;
     this.basePPU = land ? Math.min(fr.w * 0.97 / uw, fr.h * 1.02 / vh) : fr.w * 0.98 / uw;
     if (!this.intro) this.lockCam();
     else this.dirty = true;
@@ -671,7 +674,7 @@ class Tower {
     this.intro = true; this._introT = 0; this._introT0 = performance.now(); this._floorsLit = []; this._onBrand = opts.onBrand || null; this._onFloor = opts.onFloor || null;
     this.setHud(false); this._ensureFloorLights(); this._dimLights(true);
     for (const b of this.bots.values()) { if (b.hidden) continue; b.g.scale.setScalar(0.001); b.g.visible = false; b._popped = false; b.popT = null; }
-    const en = this.frameFloors(4, 6, 1.06, 'contain');
+    const en = (this.w >= 900 && this.h >= 561 && this.w > this.h * 1.15) ? (this.lockCam(), { u: this.u, v: this.v, zoom: this.zoom }) : this.frameFloors(4, 6, 1.06, 'contain');
     this._iu1 = en.u; this._iv1 = en.v; this._iz1 = en.zoom;
     const st = this.frameFloors(0, 1, 0.72, 'height');
     this._iu0 = st.u; this._iv0 = st.v; this._iz0 = st.zoom;

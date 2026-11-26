@@ -1,6 +1,6 @@
 /* Blackrock service worker: versioned shell cache, network-first data. */
-const V = 'blackrock-b12'; // b12: cinematic tower intro
-const SHELL = ['./', 'index.html', 'css/style.css?v=b12', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b12', 'js/tower.js?v=b12', 'js/analysis.js?v=b12', 'js/data.js?v=b12', 'js/chart.js?v=b12', 'js/tabbar.js?v=b12', 'js/app.js?v=b12', 'manifest-b11.webmanifest', 'manifest.webmanifest', 'icons/br-icon-b11-192.png', 'icons/br-icon-b11-512.png', 'icons/br-icon-b11-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
+const V = 'blackrock-b13'; // b13: tablet layout
+const SHELL = ['./', 'index.html', 'css/style.css?v=b13', 'js/vendor/three.min.js?v=r149', 'js/bots.js?v=b13', 'js/tower.js?v=b13', 'js/analysis.js?v=b13', 'js/data.js?v=b13', 'js/chart.js?v=b13', 'js/tabbar.js?v=b13', 'js/app.js?v=b13', 'manifest-b11.webmanifest', 'manifest.webmanifest', 'icons/br-icon-b11-192.png', 'icons/br-icon-b11-512.png', 'icons/br-icon-b11-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'];
 self.addEventListener('install', e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); });
 self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

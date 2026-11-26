@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b12';
+const BUILD = 'b13';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -419,7 +419,10 @@ let RUN = null, LAST = null;
 function toast(html, ms = 3500) { const t = $('#toast'); t.innerHTML = html; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('on'), ms); }
 function setBusy(b) { document.body.classList.toggle('busy', b); }
 function setActivity(txt, on) { const a = $('#activity'); $('span', a).textContent = txt; a.classList.toggle('on', !!on); }
-const isLand = () => matchMedia('(orientation: landscape) and (max-height: 560px)').matches;
+const LAND_Q = '(orientation: landscape) and (max-height: 560px), (orientation: landscape) and (min-width: 900px)';
+const TAB_Q = '(orientation: landscape) and (min-width: 900px) and (min-height: 561px)';
+const isLand = () => matchMedia(LAND_Q).matches;
+const isTab = () => matchMedia(TAB_Q).matches;
 
 function earningsSection(ctx) {
   const s = ctx.s || {}, e = ctx.nextEarnings, h = (s.an && s.an.earningsHistory) || [];
@@ -916,7 +919,18 @@ function idlePrompts() {
 function applyLayout() {
   const land = isLand(); document.body.classList.toggle('land', land);
   askIn().placeholder = land ? 'Ask a ticker' : 'Ask a ticker or coin';
-  requestAnimationFrame(() => scene.setInsets({ l: 0, r: 0, t: 0, b: 0 }));
+  requestAnimationFrame(() => {
+    const ins = { l: 0, r: 0, t: 0, b: 0 };
+    if (isTab()) {
+      const W = innerWidth, sd = $('#side'), tb = $('.tabbar'), bar = $('.tbar');
+      const rx = Math.min(sd ? sd.getBoundingClientRect().left : W, tb ? tb.getBoundingClientRect().left : W);
+      ins.r = Math.max(0, Math.round(W - rx + 6)); ins.l = 8;
+      let bt = 0; for (const e of [$('#status'), $('#ask')]) if (e) bt = Math.max(bt, e.getBoundingClientRect().bottom);
+      ins.t = Math.round(bt + 6) || 0;
+      ins.b = 8;
+    }
+    scene.setInsets(ins);
+  });
   renderInbox();
 }
 
@@ -991,7 +1005,7 @@ async function boot() {
   scene = new Tower($('#tower')); applyTheme(ST.theme || 'black', false);
   roster(); $('#stIco').append(avatar('boss', 22), avatar('chartist', 22), avatar('crypto', 22));
   TabBar.init($('.tabbar'), i => showTab(TABS[i]));
-  applyLayout(); matchMedia('(orientation: landscape) and (max-height: 560px)').addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
+  applyLayout(); matchMedia(LAND_Q).addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
   scene.start();
   startCinematic();
   scene.onBotTap = id => { if (RUN) return; const a = ANALYSTS[id]; if (id === 'you') { toast('That\'s you. Bots come down here when something needs you.'); return; } scene.hop(id); scene.say(id, a.title); setTimeout(() => scene.quiet(id), 2200); toast(`<b>${esc(a.name)}</b> · ${esc(a.title)}`); };
