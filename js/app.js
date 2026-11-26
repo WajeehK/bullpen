@@ -1,6 +1,6 @@
 /* Blackrock app: tower state, analysis flow, calls, watchlist, waiting-on-me, progression. */
 'use strict';
-const BUILD = 'b11';
+const BUILD = 'b12';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -941,7 +941,7 @@ function tickerLine() { const t = scene.ticker.filter(x => /[+-]\d/.test(x.t)); 
 function stopIdle() { idleOn = false; trips.clear(); }
 function startIdle() { idleOn = true; }
 async function idleTick() {
-  if (!idleOn || RUN || document.hidden || !$('#tab-floor').classList.contains('on') || trips.size >= 3) return;
+  if (!idleOn || RUN || document.hidden || (scene && scene.intro) || document.body.classList.contains('intro') || !$('#tab-floor').classList.contains('on') || trips.size >= 3) return;
   const ids = Object.keys(ANALYSTS).filter(id => id !== 'you' && unlocked(id) && scene.isHome(id) && !trips.has(id)); if (!ids.length) return;
   const id = pick(ids), n = ++tripN; trips.set(id, n);
   const alive = () => idleOn && !RUN && trips.get(id) === n;
@@ -963,6 +963,29 @@ async function idleTick() {
   } finally { if (trips.get(id) === n) trips.delete(id); }
 }
 
+
+function startCinematic() {
+  const sp = window.BRSplash;
+  const hash = (location.hash || '').slice(1);
+  const skipAsk = new URLSearchParams(location.search).has('ask');
+  const otherTab = TABS.includes(hash) && hash !== 'floor';
+  const skip = !sp || sp.ended || sp.skipped || sp.reduce || skipAsk || otherTab;
+  window.__brSkipIntro = () => { if (scene && scene.skipIntro) scene.skipIntro(); if (sp) sp.end(); };
+  if (skip) { if (sp) sp.end(); return; }
+  document.body.classList.add('intro');
+  applyLayout();
+  const kick = () => {
+    if (!sp || sp.ended || sp.skipped) { document.body.classList.remove('intro'); applyLayout(); if (sp) sp.end(); return; }
+    scene.resize();
+    sp.play();
+    scene.playIntro({
+      onBrand() { sp.brand(); },
+      onFloor(f) { if (sp.el) sp.el.dataset.floor = String(f); }
+    }).then(() => { document.body.classList.remove('intro'); applyLayout(); sp.end(); });
+  };
+  requestAnimationFrame(() => requestAnimationFrame(kick));
+}
+
 // ---------------------------------------------------------------- boot
 async function boot() {
   scene = new Tower($('#tower')); applyTheme(ST.theme || 'black', false);
@@ -970,6 +993,7 @@ async function boot() {
   TabBar.init($('.tabbar'), i => showTab(TABS[i]));
   applyLayout(); matchMedia('(orientation: landscape) and (max-height: 560px)').addEventListener('change', () => setTimeout(applyLayout, 60)); addEventListener('resize', () => { clearTimeout(boot._r); boot._r = setTimeout(applyLayout, 120); });
   scene.start();
+  startCinematic();
   scene.onBotTap = id => { if (RUN) return; const a = ANALYSTS[id]; if (id === 'you') { toast('That\'s you. Bots come down here when something needs you.'); return; } scene.hop(id); scene.say(id, a.title); setTimeout(() => scene.quiet(id), 2200); toast(`<b>${esc(a.name)}</b> · ${esc(a.title)}`); };
   $('#ask').onsubmit = e => { e.preventDefault(); const v = askIn().value.trim(); if (!v) return; $('#ac').hidden = true; askIn().blur(); askIn().value = ''; startAnalysis(v); };
   askIn().addEventListener('input', onType); askIn().addEventListener('focus', onType);
@@ -990,7 +1014,12 @@ async function boot() {
   setInterval(idleTick, 3200);
   setInterval(idlePrompts, 180000);
   scoreCalls(); pollWatch(); setInterval(pollWatch, 60000); setInterval(scoreCalls, 3600000);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) scene.stop(); else if ($('#tab-floor').classList.contains('on')) scene.start(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (scene.intro) { scene.skipIntro(); if (window.BRSplash) window.BRSplash.end(); }
+      scene.stop();
+    } else if ($('#tab-floor').classList.contains('on')) scene.start();
+  });
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').then(r => { r.update(); });

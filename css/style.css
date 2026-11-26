@@ -306,3 +306,14 @@ html[data-theme="black"] .glass{background:linear-gradient(180deg,rgba(22,22,26,
 html[data-theme="midnight"] .glass{background:linear-gradient(180deg,rgba(18,28,52,.88),rgba(8,12,24,.84))}
 .sheet{background:linear-gradient(var(--sheet, #1a1c26),var(--bg2,#121319))}
 
+
+/* b12 cinematic intro: hide chrome, let the live tower fill the screen */
+body.intro{overflow:hidden}
+body.intro .tbar,body.intro .chips,body.intro .tabbar,body.intro .side,body.intro .msg,body.intro .loader,body.intro .report,body.intro .ph{
+  visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+body.intro .tower-wrap{
+  position:fixed!important;inset:0!important;width:100vw!important;width:100dvw!important;
+  height:100vh!important;height:100dvh!important;max-height:none!important;border-radius:0!important;
+  box-shadow:none!important;z-index:1;background:var(--stage);
+}

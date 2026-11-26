@@ -49,11 +49,11 @@ class Tower {
   // ------------------------------------------------------------------ setup
   lights() {
     const s = this.scene;
-    s.add(new THREE.HemisphereLight(0xf2efff, 0x5a4636, 0.8));
-    s.add(new THREE.AmbientLight(0xffffff, 0.12));
-    const d = new THREE.DirectionalLight(0xfff0dc, 0.52); d.position.set(4, 10, 7); s.add(d);
-    const p1 = new THREE.PointLight(0xffb066, 0.9, 7.5, 1.6); p1.position.set(TW.TX, 6 * TW.FH + 1.9, TW.TZ); s.add(p1);
-    const p2 = new THREE.PointLight(0xffc27a, 0.55, 6, 1.6); p2.position.set(3.6, 6 * TW.FH + 1.6, -0.2); s.add(p2);
+    this.hemi = new THREE.HemisphereLight(0xf2efff, 0x5a4636, 0.8); s.add(this.hemi);
+    this.amb = new THREE.AmbientLight(0xffffff, 0.12); s.add(this.amb);
+    this.sun = new THREE.DirectionalLight(0xfff0dc, 0.52); this.sun.position.set(4, 10, 7); s.add(this.sun);
+    this.p1 = new THREE.PointLight(0xffb066, 0.9, 7.5, 1.6); this.p1.position.set(TW.TX, 6 * TW.FH + 1.9, TW.TZ); s.add(this.p1);
+    this.p2 = new THREE.PointLight(0xffc27a, 0.55, 6, 1.6); this.p2.position.set(3.6, 6 * TW.FH + 1.6, -0.2); s.add(this.p2);
   }
   textures() {
     this.tx = {};
@@ -451,6 +451,14 @@ class Tower {
     else if (b.state === 'tap') { y = Math.abs(Math.sin(t * 7)) * 0.08; }
     else { y = (Math.sin(t * 2) + 1) * 0.012; }
     const ht = this.t - b.hopT; if (ht >= 0 && ht < 0.9) { y += Math.sin(ht / 0.9 * Math.PI) * 0.45; moving = true; sy *= 1 + Math.sin(ht / 0.9 * Math.PI * 2) * 0.06; }
+    const wt = this.t - (b.waveT == null ? -99 : b.waveT);
+    if (wt >= 0 && wt < 0.85) { rz += Math.sin(wt / 0.85 * Math.PI * 3) * 0.22; y += Math.abs(Math.sin(wt / 0.85 * Math.PI * 2)) * 0.07; moving = true; }
+    if (b.popT != null) {
+      const pp = this.t - b.popT;
+      if (pp < 0) { b.g.scale.setScalar(0.001); moving = true; }
+      else if (pp < 0.4) { const k = pp / 0.4, e = 1 - Math.pow(1 - k, 3); b.g.scale.setScalar(TW.BOT_S * (0.15 + 0.85 * e + Math.sin(k * Math.PI) * 0.12)); moving = true; }
+      else { b.g.scale.setScalar(TW.BOT_S); b.popT = null; }
+    }
     inn.position.y = y; inn.scale.set(1 / Math.sqrt(sy), sy, 1 / Math.sqrt(sy)); inn.rotation.z = rz;
     b.sh.scale.setScalar(0.95 - y * 0.6); b.sh.material.opacity;
     // blink
@@ -503,7 +511,35 @@ class Tower {
   frameTable() { this.lockCam(); }
   follow() {}
   screenOf(x, y, z) { const v = this._sv || (this._sv = new THREE.Vector3()); v.set(x, y, z).project(this.cam); return { x: (v.x + 1) / 2 * this.w, y: (1 - v.y) / 2 * this.h }; }
-  stepCam() { return false; }
+  stepCam(dt) {
+    if (!this.intro) return false;
+    this._introT = (this._introHold != null) ? this._introHold : (performance.now() - (this._introT0 || performance.now())) / 1000;
+    const t = this._introT, camT = 4.0;
+    let p = Math.max(0, Math.min(1, t / camT));
+    const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+    this.u = this._iu0 + (this._iu1 - this._iu0) * e;
+    this.v = this._iv0 + (this._iv1 - this._iv0) * e;
+    this.zoom = this._iz0 + (this._iz1 - this._iz0) * e;
+    if (this.floorLights) {
+      for (let f = 0; f < this.floorLights.length; f++) {
+        const t0 = 0.28 + f * 0.38, k = Math.max(0, Math.min(1, (t - t0) / 0.28)), sm = k * k * (3 - 2 * k);
+        this.floorLights[f].intensity = 1.2 * sm;
+        if (k > 0.35 && !this._floorsLit[f]) { this._floorsLit[f] = true; this.popFloor(f); if (this._onFloor) this._onFloor(f); }
+      }
+    }
+    if (this._lit0) {
+      const g = Math.max(0, Math.min(1, (t - 2.6) / 1.3)), gs = g * g * (3 - 2 * g);
+      this.hemi.intensity = this._lit0.hemi * (0.18 + 0.82 * gs);
+      this.amb.intensity = this._lit0.amb * (0.15 + 0.85 * gs);
+      this.sun.intensity = this._lit0.sun * (0.2 + 0.8 * gs);
+      this.p1.intensity = this._lit0.p1 * gs;
+      this.p2.intensity = this._lit0.p2 * gs;
+    }
+    if (t >= 3.2 && this._onBrand) { const fn = this._onBrand; this._onBrand = null; fn(); }
+    if (t >= 4.5) this.endIntro();
+    this.dirty = true;
+    return true;
+  }
   // ------------------------------------------------------------------ input (tap a bot only; never move the camera, never block page scroll)
   input() {
     const el = this.r.domElement;
@@ -581,7 +617,8 @@ class Tower {
     const fr = this.free(), t = this.bTop, uw = t.u1 - t.u0, vh = t.v1 - t.v0;
     const land = w > h * 1.3;
     this.basePPU = land ? Math.min(fr.w * 0.97 / uw, fr.h * 1.02 / vh) : fr.w * 0.98 / uw;
-    this.lockCam();
+    if (!this.intro) this.lockCam();
+    else this.dirty = true;
     if (this.running && this.r && this.visible) this.draw();
   }
   setLayout() { this.resize(true); }
@@ -593,6 +630,66 @@ class Tower {
     else this.scene.fog = new THREE.Fog(c.clone(), 80, 220);
     if (this.r) this.r.setClearColor(c, 1);
     this.dirty = true; this.kick();
+  }
+  frameFloors(f0, f1, pad, mode) {
+    const pts = [], y0 = f0 * TW.FH - 0.25, y1 = f1 * TW.FH + (f1 === 6 ? TW.TOPW : TW.IH) + 0.3;
+    for (const x of [-TW.HW, TW.LIFT_X + 0.7]) for (const z of [-TW.HD, TW.HD]) for (const y of [y0, y1]) pts.push([x, y, z]);
+    const b = { u0: 1e9, u1: -1e9, v0: 1e9, v1: -1e9 };
+    for (const p of pts) { const q = this.uvOf(...p); b.u0 = Math.min(b.u0, q.u); b.u1 = Math.max(b.u1, q.u); b.v0 = Math.min(b.v0, q.v); b.v1 = Math.max(b.v1, q.v); }
+    const fr = this.free(), ku = fr.w / Math.max(0.5, b.u1 - b.u0), kv = fr.h / Math.max(0.5, b.v1 - b.v0);
+    const k = (mode === 'height' ? kv : Math.min(ku, kv)) * (pad || 1);
+    return { u: (b.u0 + b.u1) / 2, v: (b.v0 + b.v1) / 2, zoom: Math.max(0.7, Math.min(6.5, k / this.basePPU)) };
+  }
+  _ensureFloorLights() {
+    if (this.floorLights) return;
+    this.floorLights = [];
+    for (let f = 0; f < TW.N; f++) {
+      const L = new THREE.PointLight(0xffe1b0, 0, 9, 1.35);
+      L.position.set(0.2, f * TW.FH + 1.35, 0.35);
+      this.scene.add(L); this.floorLights.push(L);
+    }
+  }
+  _dimLights(on) {
+    if (!this._lit0) this._lit0 = { hemi: this.hemi.intensity, amb: this.amb.intensity, sun: this.sun.intensity, p1: this.p1.intensity, p2: this.p2.intensity };
+    const k = on ? 0 : 1;
+    this.hemi.intensity = this._lit0.hemi * (on ? 0.18 : 1);
+    this.amb.intensity = this._lit0.amb * (on ? 0.15 : 1);
+    this.sun.intensity = this._lit0.sun * (on ? 0.2 : 1);
+    this.p1.intensity = this._lit0.p1 * k; this.p2.intensity = this._lit0.p2 * k;
+  }
+  popFloor(f) {
+    let i = 0;
+    for (const b of this.bots.values()) {
+      if (b.hidden || b._popped || b.f !== f) continue;
+      b._popped = true; b.g.visible = true; b.popT = this.t + i * 0.07; b.waveT = b.popT + 0.12; b.hopT = b.waveT; i++;
+    }
+    this.kick();
+  }
+  playIntro(opts) {
+    opts = opts || {};
+    if (this._introDone) return Promise.resolve();
+    this.intro = true; this._introT = 0; this._introT0 = performance.now(); this._floorsLit = []; this._onBrand = opts.onBrand || null; this._onFloor = opts.onFloor || null;
+    this.setHud(false); this._ensureFloorLights(); this._dimLights(true);
+    for (const b of this.bots.values()) { if (b.hidden) continue; b.g.scale.setScalar(0.001); b.g.visible = false; b._popped = false; b.popT = null; }
+    const en = this.frameFloors(4, 6, 1.06, 'contain');
+    this._iu1 = en.u; this._iv1 = en.v; this._iz1 = en.zoom;
+    const st = this.frameFloors(0, 1, 0.72, 'height');
+    this._iu0 = st.u; this._iv0 = st.v; this._iz0 = st.zoom;
+    this.u = this._iu0; this.v = this._iv0; this.zoom = this._iz0;
+    this.anim = null; this.dirty = true; this.kick();
+    if (this.r && this.visible) this.draw();
+    return new Promise(res => { this._introRes = res; });
+  }
+  skipIntro() { if (this._introDone && !this.intro) { if (this._introRes) { const r = this._introRes; this._introRes = null; r(); } return; } this.endIntro(); }
+  endIntro() {
+    if (this._introDone && !this.intro) return;
+    this.intro = false; this._introDone = true; this._onBrand = null; this._onFloor = null;
+    if (this._lit0) this._dimLights(false);
+    if (this.floorLights) this.floorLights.forEach(L => { L.intensity = 0; });
+    for (const b of this.bots.values()) { if (!b.hidden) { b.g.visible = true; b.g.scale.setScalar(TW.BOT_S); } b.popT = null; }
+    this.setHud(true); this.lockCam(); this.dirty = true; this.kick();
+    if (this.r && this.visible) this.draw();
+    const r = this._introRes; this._introRes = null; if (r) r();
   }
   start() { if (this.running) return; this.running = true; this.kick(); }
   stop() { this.running = false; if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; }

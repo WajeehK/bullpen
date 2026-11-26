@@ -16,27 +16,29 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>try{var _th=(JSON.parse(localStorage.getItem('bullpen.v1')||'{}').theme)||'black';document.documentElement.dataset.theme=_th;}catch(e){document.documentElement.dataset.theme='black';}</script>
-<link rel="stylesheet" href="css/style.css?v=b11">
+<link rel="stylesheet" href="css/style.css?v=b12">
 <style>
-#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--stage,#000);color:var(--tx,#f3f4f8);pointer-events:auto;opacity:1;transition:opacity .35s ease}
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 20px max(28px, env(safe-area-inset-bottom,0px));background:var(--stage,#000);color:var(--tx,#f3f4f8);pointer-events:auto;opacity:1;transition:opacity .4s ease,background-color .45s ease}
+#splash.play{background:radial-gradient(ellipse 70% 55% at 50% 46%, transparent 42%, color-mix(in srgb, var(--stage,#000) 78%, #000) 100%)}
 #splash.done{opacity:0;pointer-events:none}
-#splash .sp-mark{width:min(42vw,200px);height:auto;display:block}
-#splash .sp-word{margin:0;font:700 22px/1.1 Inter,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase}
-#splash .sp-bot{transform-origin:50% 100%;animation:sp-bounce .7s cubic-bezier(.2,1.4,.35,1) both}
-#splash .sp-tower{opacity:.45;animation:sp-tower .5s ease .12s forwards}
-#splash .sp-lights{opacity:0;filter:brightness(.15);animation:sp-on .6s ease .4s forwards}
-#splash .sp-word{opacity:0;animation:sp-word .45s ease .85s forwards}
-@keyframes sp-bounce{0%{transform:translateY(32px) scale(.65);opacity:0}62%{transform:translateY(-7px) scale(1.05);opacity:1}100%{transform:none;opacity:1}}
-@keyframes sp-tower{to{opacity:1}}
-@keyframes sp-on{to{opacity:1;filter:brightness(1)}}
-@keyframes sp-word{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#splash .sp-brand{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:18px;pointer-events:none}
+#splash .sp-mark{width:min(28vw,112px);height:auto;display:block;opacity:0;transform:translateY(18px) scale(.88);filter:drop-shadow(0 0 16px rgba(167,139,250,.45))}
+#splash .sp-word{position:relative;margin:0;font:700 26px/1 Inter,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;opacity:0;transform:translateY(14px) scale(.94);filter:drop-shadow(0 0 22px rgba(196,181,253,.55))}
+#splash.brand .sp-mark{animation:sp-land .7s cubic-bezier(.2,1.15,.3,1) forwards}
+#splash.brand .sp-word{animation:sp-land .7s cubic-bezier(.2,1.15,.3,1) .08s forwards}
+#splash .sp-word::after{content:"";position:absolute;inset:-8% -20%;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.8) 50%,transparent 70%);transform:translateX(-120%);pointer-events:none;mix-blend-mode:overlay}
+#splash.brand .sp-word::after{animation:sp-shine .85s ease-out .28s both}
+#splash .sp-skip{appearance:none;border:0;background:rgba(255,255,255,.08);color:var(--tx,#f3f4f8);font:600 11.5px/1 Inter,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:8px 14px;border-radius:999px;opacity:.62;margin-bottom:8px}
+@keyframes sp-land{to{opacity:1;transform:none}}
+@keyframes sp-shine{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
 @media (prefers-reduced-motion:reduce){
-  #splash .sp-bot,#splash .sp-tower,#splash .sp-lights,#splash .sp-word{animation:none!important;opacity:1;filter:none;transform:none}
+  #splash .sp-mark,#splash .sp-word,#splash .sp-word::after{animation:none!important;opacity:1;transform:none;filter:none}
 }
 </style>
 </head>
 <body>
 <div id="splash" role="presentation">
+<div class="sp-brand">
 <svg class="sp-mark" viewBox="0 8 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <defs>
     <radialGradient id="sp-bot" cx="38%" cy="28%" r="80%">
@@ -96,25 +98,40 @@
 </svg>
 <p class="sp-word">Blackrock</p>
 </div>
+<button type="button" class="sp-skip" id="spSkip">Tap to skip</button>
+</div>
 <script>
-(function(){
-  var el=document.getElementById('splash'); if(!el) return;
-  var gone=false;
-  function done(){
-    if(gone) return; gone=true;
+window.BRSplash=(function(){
+  var el=document.getElementById('splash');
+  var api={el:el, ended:false, skipped:false, reduce:false};
+  try{api.reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  function end(){
+    if(api.ended) return; api.ended=true;
+    if(!el) return;
     el.classList.add('done');
     el.style.pointerEvents='none';
-    setTimeout(function(){ if(el&&el.parentNode) el.parentNode.removeChild(el); }, 450);
+    try{document.body.classList.remove('intro');}catch(e){}
+    setTimeout(function(){ if(el&&el.parentNode) el.parentNode.removeChild(el); }, 420);
   }
-  function arm(){
-    var reduce=false;
-    try{ reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
-    setTimeout(done, reduce?400:1750);
-    setTimeout(done, 3000);
+  api.end=end;
+  api.play=function(){ if(el&&!api.ended) el.classList.add('play'); };
+  api.brand=function(){ if(el&&!api.ended) el.classList.add('brand'); };
+  function skip(ev){
+    if(api.ended) return;
+    api.skipped=true;
+    if(window.__brSkipIntro) window.__brSkipIntro();
+    else end();
+    if(ev&&ev.preventDefault) ev.preventDefault();
   }
-  // Arm after first paint so late body scripts can't eat the splash window.
+  if(el){
+    el.addEventListener('pointerdown', skip);
+    var btn=document.getElementById('spSkip');
+    if(btn) btn.addEventListener('click', skip);
+  }
+  function arm(){ setTimeout(function(){ if(window.__brSkipIntro) window.__brSkipIntro(); end(); }, 7000); }
   if(typeof requestAnimationFrame==='function') requestAnimationFrame(function(){ requestAnimationFrame(arm); });
   else setTimeout(arm, 0);
+  return api;
 })();
 </script>
 <main>
@@ -171,12 +188,12 @@
 </article>
 <div id="toast" class="toast" role="status"></div>
 <script src="js/vendor/three.min.js?v=r149"></script>
-<script src="js/bots.js?v=b11"></script>
-<script src="js/tower.js?v=b11"></script>
-<script src="js/analysis.js?v=b11"></script>
-<script src="js/data.js?v=b11"></script>
-<script src="js/chart.js?v=b11"></script>
-<script src="js/tabbar.js?v=b11"></script>
-<script src="js/app.js?v=b11"></script>
+<script src="js/bots.js?v=b12"></script>
+<script src="js/tower.js?v=b12"></script>
+<script src="js/analysis.js?v=b12"></script>
+<script src="js/data.js?v=b12"></script>
+<script src="js/chart.js?v=b12"></script>
+<script src="js/tabbar.js?v=b12"></script>
+<script src="js/app.js?v=b12"></script>
 </body>
 </html>
