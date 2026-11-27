@@ -144,6 +144,14 @@ def universe():
         if s not in seen:
             inst.append({"id": s, "symbol": s, "name": n, "kind": "equity", "currency": "USD", "exchange": "US", "sector": sec, "industry": ind})
             seen.add(s)
+    # curated ETF / large-cap / LSE / rare-earth additions (each id verified against Yahoo chart data); ids already present are skipped
+    try:
+        for x in json.load(open(os.path.join(ROOT, "pipeline", "extra_universe.json"))):
+            if x["id"] not in seen:
+                inst.append(x)
+                seen.add(x["id"])
+    except Exception as e:
+        ERR.append(f"extra_universe.json unreadable: {e}")
     seen = None
     # broaden to every US-listed stock over $1.5B from Nasdaq's public screener, with one consistent sector/industry taxonomy
     try:
@@ -711,10 +719,10 @@ def main():
         chg = (p["price"] / p["prev"] - 1) * 100 if p.get("prev") else None
         quotes[x["id"]] = [p["price"], round(chg, 3) if chg is not None else None, p["asOf"], p["cur"]]
         f = (fund_state.get(x["id"]) or {}).get("f")
-        group = byind.get(x.get("industry")) or []
+        group = (byind.get(x.get("industry")) or []) if x.get("industry") else []
         scope = "industry"
         if len(group) < 4:
-            group, scope = bysec.get(x.get("sector")) or [], "sector"
+            group, scope = (bysec.get(x.get("sector")) or []) if x.get("sector") else [], "sector"
         peers = None
         if met.get(x["id"]) and group:
             others = sorted([g for g in group if g["id"] != x["id"]], key=lambda g: -(g.get("mcap") or 0))

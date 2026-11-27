@@ -28,11 +28,12 @@ const DATA = {
   },
   rank(term, wantCrypto) {
     const L = this.search || []; const t = term.toLowerCase(), T = term.toUpperCase(); if (!t) return [];
-    const out = [];
+    const out = [], words = t.split(/\s+/).filter(Boolean);
     for (const x of L) {
       const nm = x.name.toLowerCase(); let sc = 0;
       if (x.id.toUpperCase() === T || x.id.toUpperCase() === T + '.L') sc = 100; else if (x.id.toUpperCase().startsWith(T)) sc = 60 - x.id.length;
       if (nm === t) sc = Math.max(sc, 95); else if (nm.startsWith(t)) sc = Math.max(sc, 80); else if (new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(nm)) sc = Math.max(sc, 70); else if (t.length > 3 && nm.includes(t)) sc = Math.max(sc, 40);
+      if (!sc && words.length > 1 && words.every(w => nm.includes(w))) sc = 65;
       if (!sc) continue;
       if (x.kind === 'crypto') { sc += wantCrypto ? 30 : -3; if (x.rank) sc += Math.max(0, 10 - x.rank / 20); }
       else if (wantCrypto) sc -= 20;

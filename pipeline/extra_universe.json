@@ -1,0 +1,2860 @@
+[
+{
+"id":"ASC.L",
+"symbol":"ASC",
+"name":"ASOS Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"BKG.L",
+"symbol":"BKG",
+"name":"The Berkeley Group Holdings plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"BME.L",
+"symbol":"BME",
+"name":"B&M European Value Retail plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"BWY.L",
+"symbol":"BWY",
+"name":"Bellway p.l.c.",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"BYG.L",
+"symbol":"BYG",
+"name":"Big Yellow Group Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"CLDN.L",
+"symbol":"CLDN",
+"name":"Caledonia Investments Ord",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"COA.L",
+"symbol":"COA",
+"name":"Coats Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"CWK.L",
+"symbol":"CWK",
+"name":"Cranswick plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"DLN.L",
+"symbol":"DLN",
+"name":"Derwent London Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"DOM.L",
+"symbol":"DOM",
+"name":"Domino's Pizza Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"EMG.L",
+"symbol":"EMG",
+"name":"Man Group Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ENOG.L",
+"symbol":"ENOG",
+"name":"Energean plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ENT.L",
+"symbol":"ENT",
+"name":"Entain Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"FOUR.L",
+"symbol":"FOUR",
+"name":"4imprint Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"FXPO.L",
+"symbol":"FXPO",
+"name":"Ferrexpo plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"GNS.L",
+"symbol":"GNS",
+"name":"Genus plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"GRG.L",
+"symbol":"GRG",
+"name":"Greggs plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HIK.L",
+"symbol":"HIK",
+"name":"Hikma Pharmaceuticals PLC",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"INCH.L",
+"symbol":"INCH",
+"name":"Inchcape plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IPO.L",
+"symbol":"IPO",
+"name":"IP Group Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"JMAT.L",
+"symbol":"JMAT",
+"name":"Johnson Matthey Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"JUP.L",
+"symbol":"JUP",
+"name":"Jupiter Fund Management Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"LRE.L",
+"symbol":"LRE",
+"name":"Lancashire Holdings Limited",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"MONY.L",
+"symbol":"MONY",
+"name":"MONY Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"NCC.L",
+"symbol":"NCC",
+"name":"NCC Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"OCDO.L",
+"symbol":"OCDO",
+"name":"Ocado Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PAGE.L",
+"symbol":"PAGE",
+"name":"Michael Page Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PETS.L",
+"symbol":"PETS",
+"name":"Pets at Home Group Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PLUS.L",
+"symbol":"PLUS",
+"name":"Plus500 Ltd.",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PNN.L",
+"symbol":"PNN",
+"name":"Pennon Group Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PSN.L",
+"symbol":"PSN",
+"name":"Persimmon Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"QQ.L",
+"symbol":"QQ",
+"name":"QinetiQ Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"RMV.L",
+"symbol":"RMV",
+"name":"Rightmove plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"RS1.L",
+"symbol":"RS1",
+"name":"RS Group plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"RSW.L",
+"symbol":"RSW",
+"name":"Renishaw plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"SMWH.L",
+"symbol":"SMWH",
+"name":"WH Smith PLC",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"TATE.L",
+"symbol":"TATE",
+"name":"Tate & Lyle plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"TBCG.L",
+"symbol":"TBCG",
+"name":"TBC Bank Group PLC",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"TEP.L",
+"symbol":"TEP",
+"name":"Telecom Plus Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"TPK.L",
+"symbol":"TPK",
+"name":"Travis Perkins plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"TW.L",
+"symbol":"TW",
+"name":"Taylor Wimpey plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"UTG.L",
+"symbol":"UTG",
+"name":"Unite Group PLC",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VCT.L",
+"symbol":"VCT",
+"name":"Victrex plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VTY.L",
+"symbol":"VTY",
+"name":"Vistry Group PLC",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"WIZZ.L",
+"symbol":"WIZZ",
+"name":"Wizz Air Holdings Plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"YCA.L",
+"symbol":"YCA",
+"name":"Yellow Cake plc",
+"kind":"equity",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"CRML",
+"symbol":"CRML",
+"name":"Critical Metals Corp.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US",
+"sector":"Materials",
+"industry":"Metals & Mining"
+},
+{
+"id":"FMC",
+"symbol":"FMC",
+"name":"FMC Corporation",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GOLD",
+"symbol":"GOLD",
+"name":"Gold.com, Inc.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"LAC",
+"symbol":"LAC",
+"name":"Lithium Americas Corp.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US",
+"sector":"Materials",
+"industry":"Metals & Mining"
+},
+{
+"id":"NB",
+"symbol":"NB",
+"name":"NioCorp Developments Ltd.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US",
+"sector":"Materials",
+"industry":"Metals & Mining"
+},
+{
+"id":"TMC",
+"symbol":"TMC",
+"name":"TMC the metals company Inc.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US",
+"sector":"Materials",
+"industry":"Metals & Mining"
+},
+{
+"id":"UUUU",
+"symbol":"UUUU",
+"name":"Energy Fuels Inc.",
+"kind":"equity",
+"currency":"USD",
+"exchange":"US",
+"sector":"Materials",
+"industry":"Metals & Mining"
+},
+{
+"id":"AGGG.L",
+"symbol":"AGGG",
+"name":"iShares Core Global Aggregate Bond UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"AGGU.L",
+"symbol":"AGGU",
+"name":"iShares Core Global Aggregate Bond UCITS ETF USD Hedged (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"BRNT.L",
+"symbol":"BRNT",
+"name":"WisdomTree Brent Crude Oil",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"BTCE.L",
+"symbol":"BTCE",
+"name":"Bitwise Physical Bitcoin ETC",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"CBU0.L",
+"symbol":"CBU0",
+"name":"iShares VII PLC - iShares $ Treasury Bd 7-10y ETF USD Acc",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"CMOP.L",
+"symbol":"CMOP",
+"name":"Invesco Bloomberg Commodity UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"COPA.L",
+"symbol":"COPA",
+"name":"WisdomTree Copper",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"CORP.L",
+"symbol":"CORP",
+"name":"iShares Global Corp Bond UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"CRUD.L",
+"symbol":"CRUD",
+"name":"WisdomTree WTI Crude Oil",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"CSH2.L",
+"symbol":"CSH2",
+"name":"Multi Units Luxembourg - Amundi Smart Overnight Return GBP Hedged UCITS ETF Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"CUKX.L",
+"symbol":"CUKX",
+"name":"iShares VII PLC - iShares Core FTSE 100 ETF GBP Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"EMIM.L",
+"symbol":"EMIM",
+"name":"iShares Core MSCI EM IMI UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"FRIN.L",
+"symbol":"FRIN",
+"name":"Franklin FTSE India UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"FTAL.L",
+"symbol":"FTAL",
+"name":"SPDR FTSE UK All Share UCITS ETF Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"GILG.L",
+"symbol":"GILG",
+"name":"iShares Global Inflation Linked Govt Bond UCITS ETF GBP Hedged (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"GILS.L",
+"symbol":"GILS",
+"name":"Amundi Core UK Government Bond UCITS ETF Dist",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HEAL.L",
+"symbol":"HEAL",
+"name":"iShares Healthcare Innovation UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"HMCH.L",
+"symbol":"HMCH",
+"name":"HSBC MSCI China UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HMEM.L",
+"symbol":"HMEM",
+"name":"HSBC MSCI Emerging Markets UCITS ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"HMEU.L",
+"symbol":"HMEU",
+"name":"HSBC MSCI Europe UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HMJP.L",
+"symbol":"HMJP",
+"name":"HSBC MSCI JAPAN UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HMUS.L",
+"symbol":"HMUS",
+"name":"HSBC MSCI USA QUALITY UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HMWD.L",
+"symbol":"HMWD",
+"name":"HSBC MSCI World UCITS ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"HMWO.L",
+"symbol":"HMWO",
+"name":"HSBC MSCI World UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"HYGG.L",
+"symbol":"HYGG",
+"name":"Global X Hydrogen UCITS ETF USD Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IB01.L",
+"symbol":"IB01",
+"name":"iShares $ Treasury Bond 0-1yr UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"IB1T.L",
+"symbol":"IB1T",
+"name":"iShares Bitcoin ETP",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IBGX.L",
+"symbol":"IBGX",
+"name":"iShares € Govt Bond 3-5yr UCITS ETF EUR (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IBTM.L",
+"symbol":"IBTM",
+"name":"iShares $ Treasury Bond 7-10yr UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IBTS.L",
+"symbol":"IBTS",
+"name":"iShares $ Treasury Bond 1-3yr UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IDVY.L",
+"symbol":"IDVY",
+"name":"iShares Euro Dividend UCITS ETF EUR Dist",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IEAC.L",
+"symbol":"IEAC",
+"name":"iShares Core € Corp Bond UCITS ETF EUR (Dist)",
+"kind":"etf",
+"currency":"EUR",
+"exchange":"LSE"
+},
+{
+"id":"IEMA.L",
+"symbol":"IEMA",
+"name":"iShares MSCI EM UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"IGLN.L",
+"symbol":"IGLN",
+"name":"iShares Physical Gold ETC",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"IGLS.L",
+"symbol":"IGLS",
+"name":"iShares UK Gilts 0-5yr UCITS ETF GBP (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IHYG.L",
+"symbol":"IHYG",
+"name":"iShares € High Yield Corp Bond UCITS ETF EUR (Dist)",
+"kind":"etf",
+"currency":"EUR",
+"exchange":"LSE"
+},
+{
+"id":"IMEU.L",
+"symbol":"IMEU",
+"name":"iShares Core MSCI Europe UCITS ETF EUR (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"INFR.L",
+"symbol":"INFR",
+"name":"iShares Global Infrastructure UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ISFR.L",
+"symbol":"ISFR",
+"name":"iShares MSCI France UCITS ETF EUR (Acc)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ISJP.L",
+"symbol":"ISJP",
+"name":"iShares MSCI Japan Small Cap UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ISP6.L",
+"symbol":"ISP6",
+"name":"iShares S&P SmallCap 600 UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"ISUS.L",
+"symbol":"ISUS",
+"name":"iShares MSCI USA Islamic UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"IUKD.L",
+"symbol":"IUKD",
+"name":"iShares UK Dividend UCITS ETF GBP (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"LCUK.L",
+"symbol":"LCUK",
+"name":"Amundi UK Equity All Cap UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"LGGG.L",
+"symbol":"LGGG",
+"name":"L&G Global Equity UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"LQDA.L",
+"symbol":"LQDA",
+"name":"iShares $ Corp Bond UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"MEUD.L",
+"symbol":"MEUD",
+"name":"Amundi Core Stoxx Europe 600 UCITS ETF Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"MIDD.L",
+"symbol":"MIDD",
+"name":"iShares FTSE 250 UCITS ETF GBP (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"PHAG.L",
+"symbol":"PHAG",
+"name":"WisdomTree Physical Silver",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"PHAU.L",
+"symbol":"PHAU",
+"name":"WisdomTree Physical Gold",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"PHGP.L",
+"symbol":"PHGP",
+"name":"WisdomTree Physical Gold",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"RENW.L",
+"symbol":"RENW",
+"name":"L&G Clean Energy UCITS ETF USD Acc",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"SEMI.L",
+"symbol":"SEMI",
+"name":"iShares MSCI Global Semiconductors UCITS ETF USD Acc",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"SGLD.L",
+"symbol":"SGLD",
+"name":"Invesco Physical Gold ETC",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"SLXX.L",
+"symbol":"SLXX",
+"name":"iShares Core £ Corp Bond UCITS ETF GBP (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"SPXP.L",
+"symbol":"SPXP",
+"name":"Invesco S&P 500 UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"SPXS.L",
+"symbol":"SPXS",
+"name":"Invesco S&P 500 UCITS ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"SPY5.L",
+"symbol":"SPY5",
+"name":"SPDR S&P 500 UCITS ETF USD Distribution UnHedged",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"SSLN.L",
+"symbol":"SSLN",
+"name":"iShares Physical Silver ETC",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"SSLV.L",
+"symbol":"SSLV",
+"name":"Invesco Physical Silver ETC",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"SUSW.L",
+"symbol":"SUSW",
+"name":"iShares MSCI World SRI UCITS ETF EUR (Acc)",
+"kind":"etf",
+"currency":"EUR",
+"exchange":"LSE"
+},
+{
+"id":"SUWS.L",
+"symbol":"SUWS",
+"name":"iShares MSCI World SRI UCITS ETF USD (Dist)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"UKDV.L",
+"symbol":"UKDV",
+"name":"SPDR S&P UK Dividend Aristocrats UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"UKRE.L",
+"symbol":"UKRE",
+"name":"iShares MSCI Target UK Real Estate UCITS ETF GBP (Dist)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VAGP.L",
+"symbol":"VAGP",
+"name":"Vanguard Global Aggregate Bond UCITS ETF GBP Hedged Income",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VAPX.L",
+"symbol":"VAPX",
+"name":"Vanguard FTSE Developed Asia Pacific ex Japan UCITS ETF USD Distributing",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VERX.L",
+"symbol":"VERX",
+"name":"Vanguard FTSE Developed Europe ex UK UCITS ETF Distributing",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VEUR.L",
+"symbol":"VEUR",
+"name":"Vanguard FTSE Developed Europe UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VEVE.L",
+"symbol":"VEVE",
+"name":"Vanguard FTSE Developed World UCITS ETF USD Distributing",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VGOV.L",
+"symbol":"VGOV",
+"name":"Vanguard U.K. Gilt UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VGVA.L",
+"symbol":"VGVA",
+"name":"Vanguard U.K. Gilt UCITS ETF GBP Accumulation",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VJPN.L",
+"symbol":"VJPN",
+"name":"Vanguard FTSE Japan UCITS ETF USD Distributing",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VMIG.L",
+"symbol":"VMIG",
+"name":"Vanguard FTSE 250 UCITS ETF GBP Accumulation",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VNRT.L",
+"symbol":"VNRT",
+"name":"Vanguard FTSE North America UCITS ETF",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"VWRD.L",
+"symbol":"VWRD",
+"name":"Vanguard FTSE All-World UCITS ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"WLDS.L",
+"symbol":"WLDS",
+"name":"iShares MSCI World Small Cap UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"WSML.L",
+"symbol":"WSML",
+"name":"iShares MSCI World Small Cap UCITS ETF USD (Acc)",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"XDEM.L",
+"symbol":"XDEM",
+"name":"Xtrackers MSCI World Momentum UCITS ETF 1C",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"XDER.L",
+"symbol":"XDER",
+"name":"Xtrackers FTSE Developed Europe Real Estate UCITS ETF 1C",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"XDWD.L",
+"symbol":"XDWD",
+"name":"Xtrackers MSCI World UCITS ETF 1C",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"XESX.L",
+"symbol":"XESX",
+"name":"Xtrackers Euro Stoxx 50 UCITS ETF 1D",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"XGDD.L",
+"symbol":"XGDD",
+"name":"Xtrackers Stoxx Global Select Dividend 100 Swap UCITS ETF 1D",
+"kind":"etf",
+"currency":"USD",
+"exchange":"LSE"
+},
+{
+"id":"XGLE.L",
+"symbol":"XGLE",
+"name":"Xtrackers II Eurozone Government Bond UCITS ETF 1C EUR",
+"kind":"etf",
+"currency":"EUR",
+"exchange":"LSE"
+},
+{
+"id":"XGSG.L",
+"symbol":"XGSG",
+"name":"Xtrackers II Global Government Bond UCITS ETF 2D - GBP Hedged",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"XSPS.L",
+"symbol":"XSPS",
+"name":"Xtrackers S&P 500 Inverse Daily Swap UCITS ETF 1C",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"XUKX.L",
+"symbol":"XUKX",
+"name":"Xtrackers FTSE 100 Income UCITS ETF 1D",
+"kind":"etf",
+"currency":"GBP",
+"exchange":"LSE"
+},
+{
+"id":"AAAU",
+"symbol":"AAAU",
+"name":"Goldman Sachs Physical Gold ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ARKB",
+"symbol":"ARKB",
+"name":"ARK 21Shares Bitcoin ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ARKF",
+"symbol":"ARKF",
+"name":"ARK Blockchain & Fintech Innovation ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ARKG",
+"symbol":"ARKG",
+"name":"ARK Genomic Revolution ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ARKQ",
+"symbol":"ARKQ",
+"name":"ARK Autonomous Technology & Robotics ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ARKW",
+"symbol":"ARKW",
+"name":"ARK Next Generation Technology ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BAR",
+"symbol":"BAR",
+"name":"GraniteShares Gold Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BIL",
+"symbol":"BIL",
+"name":"SPDR Bloomberg 1-3 Month T-Bill ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BITB",
+"symbol":"BITB",
+"name":"Bitwise Bitcoin ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BITO",
+"symbol":"BITO",
+"name":"ProShares Bitcoin ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BKLN",
+"symbol":"BKLN",
+"name":"Invesco Senior Loan ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BLOK",
+"symbol":"BLOK",
+"name":"Amplify Blockchain Technology ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BNDX",
+"symbol":"BNDX",
+"name":"Vanguard Total International Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BNO",
+"symbol":"BNO",
+"name":"United States Brent Oil Fund, LP",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"BULZ",
+"symbol":"BULZ",
+"name":"MicroSectors Solactive FANG Innovation 3X Leveraged ETNs",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"CIBR",
+"symbol":"CIBR",
+"name":"First Trust NASDAQ Cybersecurity ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"CLOU",
+"symbol":"CLOU",
+"name":"Global X Cloud Computing ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"COPX",
+"symbol":"COPX",
+"name":"Global X Copper Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"CORN",
+"symbol":"CORN",
+"name":"Teucrium Corn Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"COWZ",
+"symbol":"COWZ",
+"name":"Pacer US Cash Cows 100 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"CPER",
+"symbol":"CPER",
+"name":"United States Copper Index Fund, LP",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DBA",
+"symbol":"DBA",
+"name":"Invesco DB Agriculture Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DBC",
+"symbol":"DBC",
+"name":"Invesco DB Commodity Index Tracking Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DGRO",
+"symbol":"DGRO",
+"name":"iShares Core Dividend Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DIVO",
+"symbol":"DIVO",
+"name":"Amplify CWP Enhanced Dividend Income ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DOG",
+"symbol":"DOG",
+"name":"ProShares Short Dow30",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"DXJ",
+"symbol":"DXJ",
+"name":"WisdomTree Japan Hedged Equity Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EMB",
+"symbol":"EMB",
+"name":"iShares J.P. Morgan USD Emerging Markets Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EPI",
+"symbol":"EPI",
+"name":"WisdomTree India Earnings Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ESPO",
+"symbol":"ESPO",
+"name":"VanEck Video Gaming and eSports ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ETHE",
+"symbol":"ETHE",
+"name":"Grayscale Ethereum Staking ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWA",
+"symbol":"EWA",
+"name":"iShares MSCI Australia ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWC",
+"symbol":"EWC",
+"name":"iShares MSCI Canada ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWG",
+"symbol":"EWG",
+"name":"iShares MSCI Germany ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWH",
+"symbol":"EWH",
+"name":"iShares MSCI Hong Kong ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWJ",
+"symbol":"EWJ",
+"name":"iShares MSCI Japan ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWT",
+"symbol":"EWT",
+"name":"iShares MSCI Taiwan ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWU",
+"symbol":"EWU",
+"name":"iShares MSCI United Kingdom ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWW",
+"symbol":"EWW",
+"name":"iShares MSCI Mexico ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWY",
+"symbol":"EWY",
+"name":"iShares MSCI South Korea ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EWZ",
+"symbol":"EWZ",
+"name":"iShares MSCI Brazil ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EZA",
+"symbol":"EZA",
+"name":"iShares MSCI South Africa ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"EZU",
+"symbol":"EZU",
+"name":"iShares MSCI Eurozone ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FAS",
+"symbol":"FAS",
+"name":"Direxion Daily Financial Bull 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FAZ",
+"symbol":"FAZ",
+"name":"Direxion Daily Financial Bear 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FNDX",
+"symbol":"FNDX",
+"name":"Schwab Fundamental U.S. Large Company ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FNGU",
+"symbol":"FNGU",
+"name":"MicroSectors FANG+ 3X Leveraged",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FXE",
+"symbol":"FXE",
+"name":"Invesco CurrencyShares Euro Currency Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FXI",
+"symbol":"FXI",
+"name":"iShares China Large-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"FXY",
+"symbol":"FXY",
+"name":"Invesco CurrencyShares Japanese Yen Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GBTC",
+"symbol":"GBTC",
+"name":"Grayscale Bitcoin Trust ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GDX",
+"symbol":"GDX",
+"name":"VanEck Gold Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GDXJ",
+"symbol":"GDXJ",
+"name":"VanEck Junior Gold Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GLDM",
+"symbol":"GLDM",
+"name":"SPDR Gold MiniShares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"GSG",
+"symbol":"GSG",
+"name":"iShares S&P GSCI Commodity-Indexed Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"HACK",
+"symbol":"HACK",
+"name":"Amplify Cybersecurity ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"HDV",
+"symbol":"HDV",
+"name":"iShares Core High Dividend ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"HEDJ",
+"symbol":"HEDJ",
+"name":"WisdomTree Europe Hedged Equity Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"HERO",
+"symbol":"HERO",
+"name":"Global X Video Games & Esports ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"HODL",
+"symbol":"HODL",
+"name":"VanEck Bitcoin ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IBB",
+"symbol":"IBB",
+"name":"iShares Biotechnology ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ICLN",
+"symbol":"ICLN",
+"name":"iShares Global Clean Energy ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IEFA",
+"symbol":"IEFA",
+"name":"iShares Core MSCI EAFE ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IEI",
+"symbol":"IEI",
+"name":"iShares 3-7 Year Treasury Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IEMG",
+"symbol":"IEMG",
+"name":"iShares Core MSCI Emerging Markets ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IEUR",
+"symbol":"IEUR",
+"name":"iShares Core MSCI Europe ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IGV",
+"symbol":"IGV",
+"name":"iShares Expanded Tech-Software Sector ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IHI",
+"symbol":"IHI",
+"name":"iShares U.S. Medical Devices ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IJH",
+"symbol":"IJH",
+"name":"iShares Core S&P Mid-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IJR",
+"symbol":"IJR",
+"name":"iShares Core S&P Small-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ILF",
+"symbol":"ILF",
+"name":"iShares Latin America 40 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"INDA",
+"symbol":"INDA",
+"name":"iShares MSCI India ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ITA",
+"symbol":"ITA",
+"name":"iShares U.S. Aerospace & Defense ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ITB",
+"symbol":"ITB",
+"name":"iShares U.S. Home Construction ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ITOT",
+"symbol":"ITOT",
+"name":"iShares Core S&P Total U.S. Stock Market ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWB",
+"symbol":"IWB",
+"name":"iShares Russell 1000 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWD",
+"symbol":"IWD",
+"name":"iShares Russell 1000 Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWF",
+"symbol":"IWF",
+"name":"iShares Russell 1000 Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWN",
+"symbol":"IWN",
+"name":"iShares Russell 2000 Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWO",
+"symbol":"IWO",
+"name":"iShares Russell 2000 Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWP",
+"symbol":"IWP",
+"name":"iShares Russell Mid-Cap Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IWS",
+"symbol":"IWS",
+"name":"iShares Russell Mid-Cap Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"IYR",
+"symbol":"IYR",
+"name":"iShares U.S. Real Estate ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"JEPI",
+"symbol":"JEPI",
+"name":"JPMorgan Equity Premium Income ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"JEPQ",
+"symbol":"JEPQ",
+"name":"JPMorgan Nasdaq Equity Premium Income ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"JETS",
+"symbol":"JETS",
+"name":"U.S. Global Jets ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"JNK",
+"symbol":"JNK",
+"name":"SPDR Bloomberg High Yield Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"JPST",
+"symbol":"JPST",
+"name":"JPMorgan Ultra-Short Income ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"KBE",
+"symbol":"KBE",
+"name":"SPDR S&P Bank ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"KRE",
+"symbol":"KRE",
+"name":"SPDR S&P Regional Banking ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"KWEB",
+"symbol":"KWEB",
+"name":"KraneShares CSI China Internet ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"LABD",
+"symbol":"LABD",
+"name":"Direxion Daily S&P Biotech Bear 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"LABU",
+"symbol":"LABU",
+"name":"Direxion Daily S&P Biotech Bull 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"LIT",
+"symbol":"LIT",
+"name":"Global X Lithium & Battery Tech ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MCHI",
+"symbol":"MCHI",
+"name":"iShares MSCI China ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MDY",
+"symbol":"MDY",
+"name":"SPDR S&P MIDCAP 400 ETF Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MGC",
+"symbol":"MGC",
+"name":"Vanguard Morningstar Mega Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MGK",
+"symbol":"MGK",
+"name":"Vanguard Morningstar Mega Cap Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MINT",
+"symbol":"MINT",
+"name":"PIMCO Enhanced Short Maturity Active Exchange-Traded Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MOAT",
+"symbol":"MOAT",
+"name":"VanEck Morningstar Wide Moat ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MTUM",
+"symbol":"MTUM",
+"name":"iShares MSCI USA Momentum Factor ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"MUB",
+"symbol":"MUB",
+"name":"iShares National Muni Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"NLR",
+"symbol":"NLR",
+"name":"VanEck Uranium and Nuclear ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"NOBL",
+"symbol":"NOBL",
+"name":"ProShares S&P 500 Dividend Aristocrats ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"OEF",
+"symbol":"OEF",
+"name":"iShares S&P 100 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"OIH",
+"symbol":"OIH",
+"name":"VanEck Oil Services ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"OUNZ",
+"symbol":"OUNZ",
+"name":"VanEck Merk Gold Trust",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PALL",
+"symbol":"PALL",
+"name":"abrdn Physical Palladium Shares ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PAVE",
+"symbol":"PAVE",
+"name":"Global X U.S. Infrastructure Development ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PBW",
+"symbol":"PBW",
+"name":"Invesco WilderHill Clean Energy ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PDBC",
+"symbol":"PDBC",
+"name":"Invesco Optimum Yield Diversified Commodity Strategy No K-1 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PPLT",
+"symbol":"PPLT",
+"name":"abrdn Physical Platinum Shares ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"PSQ",
+"symbol":"PSQ",
+"name":"ProShares Short QQQ",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"QCLN",
+"symbol":"QCLN",
+"name":"First Trust NASDAQ Clean Edge Green Energy Index Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"QUAL",
+"symbol":"QUAL",
+"name":"iShares MSCI USA Quality Factor ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"QYLD",
+"symbol":"QYLD",
+"name":"Global X NASDAQ 100 Covered Call ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"REMX",
+"symbol":"REMX",
+"name":"VanEck Rare Earth and Strategic Metals ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"RING",
+"symbol":"RING",
+"name":"iShares MSCI Global Gold Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"ROBO",
+"symbol":"ROBO",
+"name":"Robo Global Robotics and Automation Index ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"RSP",
+"symbol":"RSP",
+"name":"Invesco S&P 500 Equal Weight ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"RYLD",
+"symbol":"RYLD",
+"name":"Global X Russell 2000 Covered Call ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHA",
+"symbol":"SCHA",
+"name":"Schwab U.S. Small-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHB",
+"symbol":"SCHB",
+"name":"Schwab U.S. Broad Market ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHF",
+"symbol":"SCHF",
+"name":"Schwab International Equity ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHG",
+"symbol":"SCHG",
+"name":"Schwab U.S. Large-Cap Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHO",
+"symbol":"SCHO",
+"name":"Schwab Short-Term U.S. Treasury ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHP",
+"symbol":"SCHP",
+"name":"Schwab U.S. TIPS ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHR",
+"symbol":"SCHR",
+"name":"Schwab Intermediate-Term U.S. Treasury ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHV",
+"symbol":"SCHV",
+"name":"Schwab U.S. Large-Cap Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHX",
+"symbol":"SCHX",
+"name":"Schwab U.S. Large-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCHY",
+"symbol":"SCHY",
+"name":"Schwab International Dividend Equity ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SCZ",
+"symbol":"SCZ",
+"name":"iShares MSCI EAFE Small-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SDY",
+"symbol":"SDY",
+"name":"SPDR S&P Dividend ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SGOL",
+"symbol":"SGOL",
+"name":"abrdn Physical Gold Shares ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SGOV",
+"symbol":"SGOV",
+"name":"iShares 0-3 Month Treasury Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SH",
+"symbol":"SH",
+"name":"ProShares Short S&P500",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SHV",
+"symbol":"SHV",
+"name":"iShares 0–1 Year Treasury Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SIL",
+"symbol":"SIL",
+"name":"Global X Silver Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SILJ",
+"symbol":"SILJ",
+"name":"Amplify Junior Silver Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SIVR",
+"symbol":"SIVR",
+"name":"abrdn Physical Silver Shares ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SKYY",
+"symbol":"SKYY",
+"name":"First Trust Cloud Computing ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SLVR",
+"symbol":"SLVR",
+"name":"Sprott Silver Miners & Physical Silver ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SMIN",
+"symbol":"SMIN",
+"name":"iShares MSCI India Small-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SOXL",
+"symbol":"SOXL",
+"name":"Direxion Daily Semiconductor Bull 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SOXS",
+"symbol":"SOXS",
+"name":"Direxion Daily Semiconductor Bear 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPAB",
+"symbol":"SPAB",
+"name":"SPDR Portfolio Aggregate Bond Index ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPHB",
+"symbol":"SPHB",
+"name":"Invesco S&P 500 High Beta ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPHD",
+"symbol":"SPHD",
+"name":"Invesco S&P 500 High Dividend Low Volatility ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPHQ",
+"symbol":"SPHQ",
+"name":"Invesco S&P 500 Quality ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPLV",
+"symbol":"SPLV",
+"name":"Invesco S&P 500 Low Volatility ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPMO",
+"symbol":"SPMO",
+"name":"Invesco S&P 500 Momentum ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPTL",
+"symbol":"SPTL",
+"name":"SPDR Portfolio Long Term Treasury Index ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPXU",
+"symbol":"SPXU",
+"name":"ProShares UltraPro Short S&P500",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPYG",
+"symbol":"SPYG",
+"name":"SPDR Portfolio S&P 500 Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SPYV",
+"symbol":"SPYV",
+"name":"SPDR Portfolio S&P 500 Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SQQQ",
+"symbol":"SQQQ",
+"name":"ProShares UltraPro Short QQQ",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"SVXY",
+"symbol":"SVXY",
+"name":"ProShares Short VIX Short-Term Futures ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TAN",
+"symbol":"TAN",
+"name":"Invesco Solar ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TECL",
+"symbol":"TECL",
+"name":"Direxion Daily Technology Bull 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TECS",
+"symbol":"TECS",
+"name":"Direxion Daily Technology Bear 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TIP",
+"symbol":"TIP",
+"name":"iShares TIPS Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TLH",
+"symbol":"TLH",
+"name":"iShares 10-20 Year Treasury Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TMF",
+"symbol":"TMF",
+"name":"Direxion Daily 20+ Year Treasury Bull 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TMV",
+"symbol":"TMV",
+"name":"Direxion Daily 20+ Year Treasury Bear 3X Shares",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TQQQ",
+"symbol":"TQQQ",
+"name":"ProShares UltraPro QQQ",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"TUR",
+"symbol":"TUR",
+"name":"iShares MSCI Turkey ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"UNG",
+"symbol":"UNG",
+"name":"United States Natural Gas Fund, LP",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"UPRO",
+"symbol":"UPRO",
+"name":"ProShares UltraPro S&P500",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"URA",
+"symbol":"URA",
+"name":"Global X Uranium ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"URNM",
+"symbol":"URNM",
+"name":"Sprott Uranium Miners ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"USD",
+"symbol":"USD",
+"name":"ProShares Ultra Semiconductors",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"USHY",
+"symbol":"USHY",
+"name":"iShares Broad USD High Yield Corporate Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"USMV",
+"symbol":"USMV",
+"name":"iShares MSCI USA Min Vol Factor ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"UUP",
+"symbol":"UUP",
+"name":"Invesco DB US Dollar Index Bullish Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"UVXY",
+"symbol":"UVXY",
+"name":"ProShares Ultra VIX Short-Term Futures ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VAW",
+"symbol":"VAW",
+"name":"Vanguard Materials ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VB",
+"symbol":"VB",
+"name":"Vanguard Morningstar Small-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VBK",
+"symbol":"VBK",
+"name":"Vanguard Morningstar Small-Cap Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VBR",
+"symbol":"VBR",
+"name":"Vanguard Morningstar Small-Cap Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VCIT",
+"symbol":"VCIT",
+"name":"Vanguard Intermediate-Term Corporate Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VCLT",
+"symbol":"VCLT",
+"name":"Vanguard Long-Term Corporate Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VCR",
+"symbol":"VCR",
+"name":"Vanguard Consumer Discretionary ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VCSH",
+"symbol":"VCSH",
+"name":"Vanguard Short-Term Corporate Bond ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VDC",
+"symbol":"VDC",
+"name":"Vanguard Consumer Staples ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VDE",
+"symbol":"VDE",
+"name":"Vanguard Energy ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VFH",
+"symbol":"VFH",
+"name":"Vanguard Financials ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VGIT",
+"symbol":"VGIT",
+"name":"Vanguard Intermediate-Term Treasury ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VGK",
+"symbol":"VGK",
+"name":"Vanguard FTSE Europe ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VGLT",
+"symbol":"VGLT",
+"name":"Vanguard Long-Term Treasury ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VGSH",
+"symbol":"VGSH",
+"name":"Vanguard Short-Term Treasury ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VGT",
+"symbol":"VGT",
+"name":"Vanguard Information Technology ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VHT",
+"symbol":"VHT",
+"name":"Vanguard Health Care ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VIS",
+"symbol":"VIS",
+"name":"Vanguard Industrials ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VLUE",
+"symbol":"VLUE",
+"name":"iShares MSCI USA Value Factor ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VNM",
+"symbol":"VNM",
+"name":"VanEck Vietnam ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VO",
+"symbol":"VO",
+"name":"Vanguard Morningstar Mid-Cap ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VONG",
+"symbol":"VONG",
+"name":"Vanguard Russell 1000 Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VONV",
+"symbol":"VONV",
+"name":"Vanguard Russell 1000 Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VOX",
+"symbol":"VOX",
+"name":"Vanguard Communication Services ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VPU",
+"symbol":"VPU",
+"name":"Vanguard Utilities ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VT",
+"symbol":"VT",
+"name":"Vanguard Total World Stock ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VTIP",
+"symbol":"VTIP",
+"name":"Vanguard Short-Term Inflation-Protected Securities ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VTV",
+"symbol":"VTV",
+"name":"Vanguard Morningstar Value ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VUG",
+"symbol":"VUG",
+"name":"Vanguard Morningstar Growth ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VXUS",
+"symbol":"VXUS",
+"name":"Vanguard Total International Stock ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"VXX",
+"symbol":"VXX",
+"name":"iPath Series B S&P 500 VIX Short-Term Futures ETN",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"WEAT",
+"symbol":"WEAT",
+"name":"Teucrium Wheat Fund",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XAR",
+"symbol":"XAR",
+"name":"SPDR S&P Aerospace & Defense ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XBI",
+"symbol":"XBI",
+"name":"SPDR S&P Biotech ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XHB",
+"symbol":"XHB",
+"name":"SPDR S&P Homebuilders ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XLG",
+"symbol":"XLG",
+"name":"Invesco S&P 500 Top 50 ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XLRE",
+"symbol":"XLRE",
+"name":"State Street Real Estate Select Sector SPDR ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XME",
+"symbol":"XME",
+"name":"SPDR S&P Metals & Mining ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XOP",
+"symbol":"XOP",
+"name":"SPDR S&P Oil & Gas Exploration & Production ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XRT",
+"symbol":"XRT",
+"name":"SPDR S&P Retail ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XSD",
+"symbol":"XSD",
+"name":"SPDR S&P Semiconductor ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+},
+{
+"id":"XYLD",
+"symbol":"XYLD",
+"name":"Global X S&P 500 Covered Call ETF",
+"kind":"etf",
+"currency":"USD",
+"exchange":"US"
+}
+]
